@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
-import { buildDateRange, dayCount, displayDate, displayDateRange } from "@/lib/dates";
+import { dayCount, displayDate, displayDateRange } from "@/lib/dates";
 import { formatCurrency } from "@/lib/format";
 import { buildTimelineItems, type OpenDateSlot } from "@/lib/stop-suggestions";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
@@ -412,21 +412,6 @@ export default function TripDetailPage() {
 
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <BudgetSummary trip={trip} />
-            <Card>
-              <CardHeader>
-                <CardTitle>Day coverage</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {buildDateRange(trip.start_date, trip.end_date).map((date) => {
-                  const activeStop = trip.stops.find((stop) => date >= stop.start_date && date <= stop.end_date);
-                  return (
-                    <Badge key={date} className={activeStop ? "border-teal-300/30 bg-teal-400/12 text-teal-100" : ""}>
-                      {date.slice(5)} {activeStop ? activeStop.city : "Open"}
-                    </Badge>
-                  );
-                })}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

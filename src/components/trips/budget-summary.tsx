@@ -18,16 +18,16 @@ export function BudgetSummary({ trip }: { trip: TripWithStops }) {
         <CardTitle>Budget</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3">
-          <div className="bg-[#181b20] p-4">
+        <div className="divide-y divide-white/10 border border-white/10 bg-[#181b20]">
+          <div className="flex items-baseline justify-between gap-4 p-4">
             <p className="text-xs text-white/50">Total</p>
             <p className="mt-1 font-serif text-2xl font-semibold text-white">{formatCurrency(budget, trip.currency)}</p>
           </div>
-          <div className="bg-[#181b20] p-4">
+          <div className="flex items-baseline justify-between gap-4 p-4">
             <p className="text-xs text-white/50">Planned</p>
             <p className="mt-1 font-serif text-2xl font-semibold text-white">{formatCurrency(plannedSpend, trip.currency)}</p>
           </div>
-          <div className="bg-[#181b20] p-4">
+          <div className="flex items-baseline justify-between gap-4 p-4">
             <p className="text-xs text-white/50">{remaining >= 0 ? "Remaining" : "Over"}</p>
             <p className={remaining >= 0 ? "mt-1 font-serif text-2xl font-semibold text-teal-200" : "mt-1 font-serif text-2xl font-semibold text-red-300"}>
               {formatCurrency(Math.abs(remaining), trip.currency)}
