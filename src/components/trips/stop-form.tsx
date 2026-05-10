@@ -214,9 +214,6 @@ export function StopForm({
                           <a className="text-white/40 transition hover:text-white/70" href={suggestion.hotelSourceUrl} rel="noreferrer" target="_blank">
                             Hotel price
                           </a>
-                          <a className="text-white/40 transition hover:text-white/70" href={suggestion.sourceUrl} rel="noreferrer" target="_blank">
-                            Route source
-                          </a>
                         </div>
                       </div>
                       <Button

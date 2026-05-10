@@ -154,22 +154,30 @@ export default function TripsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Recommended cities</CardTitle>
+              <CardTitle>Explore cities</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {recommendedCities.map((city) => (
-                <div key={city.city} className="overflow-hidden border border-white/10 bg-[#181b20]">
-                  <Image
-                    alt={`${city.city}, ${city.country}`}
-                    className="h-32 w-full object-cover"
-                    height={160}
-                    src={city.imageUrl}
-                    width={384}
-                  />
+                <div
+                  key={city.city}
+                  className="group cursor-pointer overflow-hidden border border-white/10 bg-[#181b20] transition hover:border-white/25"
+                  onClick={() => router.push(`/explore/${encodeURIComponent(city.city)}`)}
+                >
+                  <div className="relative h-32 w-full overflow-hidden">
+                    <Image
+                      alt={`${city.city}, ${city.country}`}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      height={160}
+                      src={city.imageUrl}
+                      width={384}
+                    />
+                  </div>
                   <div className="min-w-0 p-3">
-                    <p className="font-serif text-xl font-semibold text-white">{city.city}</p>
-                    <p className="text-xs text-white/50">{city.country} · {city.costIndex}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-white/60">{city.description}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-serif text-xl font-semibold text-white">{city.city}</p>
+                    </div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">{city.country}</p>
+                    <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-white/60">{city.description}</p>
                   </div>
                 </div>
               ))}

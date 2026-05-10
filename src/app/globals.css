@@ -49,3 +49,28 @@ select {
 .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgb(203 213 225 / 0.55);
 }
+
+[data-sonner-toast] {
+  border-color: rgb(255 255 255 / 0.14) !important;
+  background: rgb(8 12 18 / 0.88) !important;
+  color: rgb(255 255 255 / 0.86) !important;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.36) !important;
+  backdrop-filter: blur(16px);
+}
+
+[data-sonner-toast] [data-title] {
+  color: rgb(255 255 255 / 0.88) !important;
+  font-weight: 600;
+}
+
+[data-sonner-toast] [data-description] {
+  color: rgb(255 255 255 / 0.58) !important;
+}
+
+[data-sonner-toast] [data-icon] {
+  color: rgb(204 251 241 / 0.86) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: rgb(252 165 165 / 0.9) !important;
+}

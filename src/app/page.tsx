@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarDays, Mail, MapPin, Mountain, Users, X } from "lucide-react";
+import { ArrowRight, CalendarDays, Mail, MapPin, Mountain, Plus, Users, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -771,9 +771,9 @@ export default function Home() {
       <section id="recommended" className="relative z-10 scroll-mt-20 border-y border-white/10 bg-[#181b20] px-4 py-14 sm:px-8 sm:py-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-normal text-white/40">Pre-planned picks</p>
+            <p className="text-xs font-semibold uppercase tracking-normal text-white/40">City Guide</p>
             <h2 className="mx-auto mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">
-              Recommended Destinations, Ready To Add.
+              Explore Cities.
             </h2>
           </div>
 
@@ -850,15 +850,17 @@ export default function Home() {
                       <p className="mt-1 text-lg font-semibold text-white">{selectedPlan.budgetEstimate}</p>
                       <p className="text-[11px] font-medium uppercase text-white/45">{selectedPlan.budgetNote}</p>
                     </div>
-                    <button
-                      className="inline-flex h-11 w-full items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
-                      disabled={addingPlan}
-                      type="button"
-                      onClick={addRecommendedPlanToTrips}
-                    >
-                      {addingPlan ? "Adding..." : "Add to my trips"}
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        className="inline-flex h-11 w-full items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                        disabled={addingPlan}
+                        type="button"
+                        onClick={addRecommendedPlanToTrips}
+                      >
+                        {addingPlan ? "Adding..." : "Add to my trips"}
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

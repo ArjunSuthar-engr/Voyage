@@ -30,7 +30,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[#14171b] text-white">
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster position="top-right" theme="dark" />
       </body>
     </html>
   );
