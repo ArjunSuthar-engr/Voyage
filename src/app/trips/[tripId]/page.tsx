@@ -25,6 +25,7 @@ import {
   createStop,
   deleteActivity,
   deleteStop,
+  deleteTrip,
   getTripWithStops,
   getTrips,
   setTripPublic,
@@ -147,6 +148,18 @@ export default function TripDetailPage() {
     }
   }
 
+  async function handleDeleteTrip() {
+    if (!trip) return;
+    if (!window.confirm(`Delete "${trip.name}" and all stops/activities?`)) return;
+    try {
+      await deleteTrip(trip.id);
+      toast.success("Trip deleted");
+      router.replace("/trips");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete trip");
+    }
+  }
+
   async function handleTogglePublic(isPublic: boolean) {
     if (!trip) return;
     try {
@@ -185,6 +198,15 @@ export default function TripDetailPage() {
           title={trip.name}
           description={trip.description || "Add city stops, activities, and cost estimates to build the full route."}
         >
+          <Button
+            aria-label="Delete trip"
+            className="absolute right-4 top-4 h-10 w-10 border border-red-300/40 bg-red-500/90 px-0 text-white hover:bg-red-400"
+            type="button"
+            variant="destructive"
+            onClick={handleDeleteTrip}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
           <div className="flex flex-col justify-between gap-4 border border-white/15 bg-black/28 p-4 backdrop-blur sm:flex-row sm:items-end">
             <div className="flex flex-wrap gap-4 text-sm text-white/72">
               <span className="inline-flex items-center gap-2">
