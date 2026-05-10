@@ -19,12 +19,12 @@ export function Modal({ open, title, description, children, onClose, className }
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-stone-950/35 p-3 backdrop-blur-sm sm:items-center sm:justify-center">
-      <div className={cn("max-h-[92vh] w-full overflow-auto rounded-lg bg-white shadow-xl sm:max-w-2xl", className)}>
-        <div className="flex items-start justify-between gap-4 border-b border-stone-200 p-5">
+    <div className="fixed inset-0 z-50 flex items-end bg-black/55 p-3 backdrop-blur-sm sm:items-center sm:justify-center">
+      <div className={cn("max-h-[92vh] w-full overflow-auto rounded-none border border-white/10 bg-[#1d2127] text-white shadow-2xl sm:max-w-2xl", className)}>
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 p-5">
           <div>
-            <h2 className="text-lg font-semibold text-stone-950">{title}</h2>
-            {description ? <p className="mt-1 text-sm text-stone-500">{description}</p> : null}
+            <h2 className="font-serif text-2xl font-semibold text-white">{title}</h2>
+            {description ? <p className="mt-1 text-sm text-white/55">{description}</p> : null}
           </div>
           <Button aria-label="Close dialog" size="icon" variant="ghost" onClick={onClose}>
             <X className="h-4 w-4" />

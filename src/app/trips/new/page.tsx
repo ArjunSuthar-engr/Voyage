@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import { EnvCallout } from "@/components/setup/env-callout";
 import { TripForm } from "@/components/trips/trip-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,14 +43,20 @@ export default function NewTripPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-5">
         {!isSupabaseConfigured ? <EnvCallout /> : null}
-        <Card>
+        <PageHero
+          eyebrow="New itinerary"
+          imageUrl="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85"
+          title="Start with the shape of the trip"
+          description="Name the journey, set the dates, and define the budget. Cities and activities come next."
+        />
+        <Card className="mx-auto max-w-3xl">
           <CardHeader>
             <CardTitle>Plan a new trip</CardTitle>
-            <p className="text-sm text-stone-500">Start with the trip shell. Cities and activities come next.</p>
+            <p className="text-sm text-white/50">Start with the trip shell. Cities and activities come next.</p>
           </CardHeader>
-          <CardContent>{ready ? <TripForm submitLabel="Create trip" onSubmit={handleCreateTrip} /> : <p className="text-sm text-stone-500">Loading...</p>}</CardContent>
+          <CardContent>{ready ? <TripForm submitLabel="Create trip" onSubmit={handleCreateTrip} /> : <p className="text-sm text-white/50">Loading...</p>}</CardContent>
         </Card>
       </div>
     </AppShell>

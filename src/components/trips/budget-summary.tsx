@@ -18,25 +18,25 @@ export function BudgetSummary({ trip }: { trip: TripWithStops }) {
         <CardTitle>Budget</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <p className="text-xs text-stone-500">Total</p>
-            <p className="text-lg font-semibold text-stone-950">{formatCurrency(budget, trip.currency)}</p>
+        <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3">
+          <div className="bg-[#181b20] p-4">
+            <p className="text-xs text-white/50">Total</p>
+            <p className="mt-1 font-serif text-2xl font-semibold text-white">{formatCurrency(budget, trip.currency)}</p>
           </div>
-          <div>
-            <p className="text-xs text-stone-500">Planned</p>
-            <p className="text-lg font-semibold text-stone-950">{formatCurrency(plannedSpend, trip.currency)}</p>
+          <div className="bg-[#181b20] p-4">
+            <p className="text-xs text-white/50">Planned</p>
+            <p className="mt-1 font-serif text-2xl font-semibold text-white">{formatCurrency(plannedSpend, trip.currency)}</p>
           </div>
-          <div>
-            <p className="text-xs text-stone-500">{remaining >= 0 ? "Remaining" : "Over"}</p>
-            <p className={remaining >= 0 ? "text-lg font-semibold text-teal-700" : "text-lg font-semibold text-red-700"}>
+          <div className="bg-[#181b20] p-4">
+            <p className="text-xs text-white/50">{remaining >= 0 ? "Remaining" : "Over"}</p>
+            <p className={remaining >= 0 ? "mt-1 font-serif text-2xl font-semibold text-teal-200" : "mt-1 font-serif text-2xl font-semibold text-red-300"}>
               {formatCurrency(Math.abs(remaining), trip.currency)}
             </p>
           </div>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-stone-100">
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
           <div
-            className={remaining >= 0 ? "h-full bg-teal-700" : "h-full bg-red-600"}
+            className={remaining >= 0 ? "h-full bg-teal-400" : "h-full bg-red-600"}
             style={{ width: `${Math.min(100, budget > 0 ? (plannedSpend / budget) * 100 : 0)}%` }}
           />
         </div>
@@ -48,7 +48,7 @@ export function BudgetSummary({ trip }: { trip: TripWithStops }) {
               </Badge>
             ))
           ) : (
-            <span className="text-sm text-stone-500">Add stops and activities to see a breakdown.</span>
+            <span className="text-sm text-white/50">Add stops and activities to see a breakdown.</span>
           )}
         </div>
       </CardContent>

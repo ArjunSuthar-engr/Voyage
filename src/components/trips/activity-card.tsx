@@ -17,16 +17,16 @@ type ActivityCardProps = {
 
 export function ActivityCard({ activity, currency, readOnly, onEdit, onDelete }: ActivityCardProps) {
   return (
-    <div className="rounded-lg border border-stone-200 bg-white p-3">
+    <div className="rounded-none border border-white/10 bg-[#1d2127] p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <Badge className={categoryClasses[activity.category]}>{categoryLabels[activity.category]}</Badge>
-            <span className="text-xs font-medium text-stone-500">{formatTime(activity.start_time)}</span>
-            <span className="text-xs font-medium text-stone-500">{formatCurrency(activity.cost, currency)}</span>
+            <span className="text-xs font-medium text-white/50">{formatTime(activity.start_time)}</span>
+            <span className="text-xs font-medium text-white/50">{formatCurrency(activity.cost, currency)}</span>
           </div>
-          <p className="font-medium text-stone-950">{activity.title}</p>
-          {activity.notes ? <p className="mt-1 text-sm text-stone-500">{activity.notes}</p> : null}
+          <p className="font-medium text-white">{activity.title}</p>
+          {activity.notes ? <p className="mt-1 text-sm text-white/50">{activity.notes}</p> : null}
         </div>
         {!readOnly ? (
           <div className="flex shrink-0 gap-1">

@@ -7,6 +7,7 @@ import { MapPin, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import { EnvCallout } from "@/components/setup/env-callout";
 import { TripForm } from "@/components/trips/trip-form";
 import { TripCard } from "@/components/trips/trip-card";
@@ -96,14 +97,12 @@ export default function DashboardPage() {
     <AppShell>
       <div className="space-y-6">
         {!isSupabaseConfigured ? <EnvCallout /> : null}
-        <section className="flex flex-col justify-between gap-4 rounded-lg border border-stone-200 bg-white p-5 shadow-sm sm:flex-row sm:items-end">
-          <div>
-            <p className="text-sm text-stone-500">Welcome{displayName ? `, ${displayName}` : ""}</p>
-            <h1 className="mt-1 text-3xl font-semibold text-stone-950">Plan your next city loop</h1>
-            <p className="mt-2 max-w-2xl text-sm text-stone-600">
-              Build a multi-city itinerary with stops, activity templates, budget tracking, and a public share page.
-            </p>
-          </div>
+        <PageHero
+          eyebrow={displayName ? `Welcome, ${displayName}` : "Voyage workspace"}
+          imageUrl="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85"
+          title="Plan your next city loop"
+          description="Build a multi-city itinerary with stops, activity templates, budget tracking, and a public share page."
+        >
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button disabled={!isSupabaseConfigured || demoLoading} type="button" variant="secondary" onClick={handleCreateDemo}>
               <Sparkles className="h-4 w-4" />
@@ -114,18 +113,21 @@ export default function DashboardPage() {
               Plan new trip
             </Button>
           </div>
-        </section>
+        </PageHero>
 
         <section className="grid gap-4 lg:grid-cols-[1fr_360px]">
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-stone-950">My trips</h2>
-              <span className="text-sm text-stone-500">{trips.length} total</span>
+            <div className="flex items-end justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="text-xs font-semibold uppercase text-white/40">Saved routes</p>
+                <h2 className="mt-1 font-serif text-3xl font-semibold text-white">My trips</h2>
+              </div>
+              <span className="text-sm text-white/50">{trips.length} total</span>
             </div>
             {loading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {[1, 2].map((item) => (
-                  <div key={item} className="h-56 animate-pulse rounded-lg bg-stone-200" />
+                  <div key={item} className="h-56 animate-pulse rounded-none bg-white/12" />
                 ))}
               </div>
             ) : trips.length ? (
@@ -137,10 +139,10 @@ export default function DashboardPage() {
             ) : (
               <Card>
                 <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-                  <MapPin className="h-10 w-10 text-teal-700" />
+                  <MapPin className="h-10 w-10 text-teal-200" />
                   <div>
-                    <h3 className="text-lg font-semibold text-stone-950">No trips yet</h3>
-                    <p className="mt-1 text-sm text-stone-500">Create a fresh trip or generate the demo Japan loop.</p>
+                    <h3 className="text-lg font-semibold text-white">No trips yet</h3>
+                    <p className="mt-1 text-sm text-white/50">Create a fresh trip or generate the demo Japan loop.</p>
                   </div>
                   <Button disabled={!isSupabaseConfigured} onClick={() => router.push("/trips/new")}>
                     Start planning
@@ -156,18 +158,18 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {recommendedCities.map((city) => (
-                <div key={city.city} className="flex gap-3 rounded-lg border border-stone-200 bg-stone-50 p-2">
+                <div key={city.city} className="overflow-hidden border border-white/10 bg-[#181b20]">
                   <Image
                     alt={`${city.city}, ${city.country}`}
-                    className="h-20 w-24 rounded-md object-cover"
+                    className="h-32 w-full object-cover"
                     height={160}
                     src={city.imageUrl}
-                    width={192}
+                    width={384}
                   />
-                  <div className="min-w-0">
-                    <p className="font-medium text-stone-950">{city.city}</p>
-                    <p className="text-xs text-stone-500">{city.country} · {city.costIndex}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-stone-600">{city.description}</p>
+                  <div className="min-w-0 p-3">
+                    <p className="font-serif text-xl font-semibold text-white">{city.city}</p>
+                    <p className="text-xs text-white/50">{city.country} · {city.costIndex}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-white/60">{city.description}</p>
                   </div>
                 </div>
               ))}

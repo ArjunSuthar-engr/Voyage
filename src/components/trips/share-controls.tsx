@@ -28,11 +28,11 @@ export function ShareControls({ trip, onToggle }: ShareControlsProps) {
     <Card>
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <Badge className={trip.is_public ? "border-teal-200 bg-teal-50 text-teal-700" : ""}>
+          <Badge className={trip.is_public ? "border-teal-300/30 bg-teal-400/12 text-teal-100" : ""}>
             {trip.is_public ? <Globe2 className="mr-1 h-3 w-3" /> : <Lock className="mr-1 h-3 w-3" />}
             {trip.is_public ? "Public itinerary" : "Private itinerary"}
           </Badge>
-          {trip.is_public ? <p className="break-all text-xs text-stone-500">{shareUrl}</p> : null}
+          {trip.is_public ? <p className="break-all text-xs text-white/50">{shareUrl}</p> : null}
         </div>
         <div className="flex gap-2">
           {trip.is_public ? (

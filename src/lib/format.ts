@@ -11,13 +11,13 @@ export const categoryLabels: Record<ActivityCategory, string> = {
 };
 
 export const categoryClasses: Record<ActivityCategory, string> = {
-  flight: "border-sky-200 bg-sky-50 text-sky-700",
-  hotel: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  food: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  transport: "border-amber-200 bg-amber-50 text-amber-800",
-  activity: "border-rose-200 bg-rose-50 text-rose-700",
-  shopping: "border-violet-200 bg-violet-50 text-violet-700",
-  other: "border-stone-200 bg-stone-50 text-stone-700",
+  flight: "border-sky-300/30 bg-sky-400/12 text-sky-100",
+  hotel: "border-indigo-300/30 bg-indigo-400/12 text-indigo-100",
+  food: "border-emerald-300/30 bg-emerald-400/12 text-emerald-100",
+  transport: "border-amber-300/30 bg-amber-400/12 text-amber-100",
+  activity: "border-rose-300/30 bg-rose-400/12 text-rose-100",
+  shopping: "border-violet-300/30 bg-violet-400/12 text-violet-100",
+  other: "border-white/15 bg-white/10 text-white/72",
 };
 
 export function moneyNumber(value: MoneyValue) {

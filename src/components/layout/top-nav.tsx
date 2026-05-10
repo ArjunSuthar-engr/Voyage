@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Map, Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -30,17 +30,19 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/dashboard" className="flex items-center gap-2 text-base font-semibold text-stone-950">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-teal-700 text-white">
-            <Map className="h-4 w-4" />
-          </span>
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#101216]/95 backdrop-blur">
+      <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
+        <nav className="flex items-center gap-4">
+          <Link className="transition hover:text-white" href="/dashboard">
+            Trips
+          </Link>
+        </nav>
+        <Link href="/dashboard" className="font-serif text-2xl font-semibold italic normal-case text-white">
           Voyage
         </Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center justify-end gap-2 sm:gap-3">
           {displayName ? (
-            <span className="hidden max-w-44 truncate text-sm font-medium text-stone-700 sm:inline">
+            <span className="hidden max-w-44 truncate text-right text-xs font-semibold uppercase text-white/55 sm:inline">
               {displayName}
             </span>
           ) : null}

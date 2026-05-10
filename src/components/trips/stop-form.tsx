@@ -105,7 +105,7 @@ export function StopForm({ tripId, tripStartDate, tripEndDate, initialStop, next
           {saving ? "Saving..." : initialStop ? "Update stop" : "Add stop"}
         </Button>
       </form>
-      <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+      <div className="rounded-none border border-white/10 bg-white/5 p-3">
         <CitySearch
           onSelect={(option) => {
             setCity(option.city);
