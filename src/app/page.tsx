@@ -19,6 +19,17 @@ const demoPassword = "voyager@321";
 
 type AuthMode = "login" | "signup" | "profile";
 
+type ProfileSnapshot = {
+  name: string;
+  email: string;
+  avatarSeed: string;
+  avatarStyle: string;
+  language: string;
+  personalizationEnabled: boolean;
+  publicProfileEnabled: boolean;
+  productUpdatesEnabled: boolean;
+};
+
 const recommendedPlans = [
   {
     country: "Japan",
@@ -84,6 +95,29 @@ const plannerStyleOptions = [
   "Family friendly pacing",
 ];
 
+const avatarStyles = ["adventurer", "bottts", "initials", "lorelei"];
+const avatarSeeds = ["Voyager", "Atlas", "Summit", "Harbor", "Nomad", "Juniper"];
+const languageOptions = [
+  { label: "English", value: "en" },
+  { label: "Hindi", value: "hi" },
+  { label: "Spanish", value: "es" },
+  { label: "French", value: "fr" },
+  { label: "Japanese", value: "ja" },
+];
+
+function getMetadataString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function getMetadataBoolean(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function getAvatarUrl(style: string, seed: string) {
+  const safeStyle = encodeURIComponent(style || "adventurer");
+  const safeSeed = encodeURIComponent(seed || "Voyager");
+  return `https://api.dicebear.com/9.x/${safeStyle}/svg?seed=${safeSeed}`;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -94,6 +128,13 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [savedProfile, setSavedProfile] = useState<ProfileSnapshot | null>(null);
+  const [avatarSeed, setAvatarSeed] = useState("Voyager");
+  const [avatarStyle, setAvatarStyle] = useState("adventurer");
+  const [language, setLanguage] = useState("en");
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(true);
+  const [publicProfileEnabled, setPublicProfileEnabled] = useState(false);
+  const [productUpdatesEnabled, setProductUpdatesEnabled] = useState(false);
   const [tripDestination, setTripDestination] = useState(recommendedPlans[0]?.title ?? "");
   const [travelStart, setTravelStart] = useState("");
   const [travelEnd, setTravelEnd] = useState("");
@@ -102,16 +143,54 @@ export default function Home() {
   const [postAuthPath, setPostAuthPath] = useState("/");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
+  const displayAvatarStyle = savedProfile?.avatarStyle ?? avatarStyle;
+  const displayAvatarSeed = savedProfile?.avatarSeed ?? avatarSeed;
+  const profileDirty =
+    mode === "profile" &&
+    savedProfile !== null &&
+    (name !== savedProfile.name ||
+      email !== savedProfile.email ||
+      avatarSeed !== savedProfile.avatarSeed ||
+      avatarStyle !== savedProfile.avatarStyle ||
+      language !== savedProfile.language ||
+      personalizationEnabled !== savedProfile.personalizationEnabled ||
+      publicProfileEnabled !== savedProfile.publicProfileEnabled ||
+      productUpdatesEnabled !== savedProfile.productUpdatesEnabled);
+
+  function applyUserProfile(user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"]) {
+    const userName = getUserDisplayName(user);
+    const metadata = user?.user_metadata ?? {};
+    const preferences = metadata.preferences && typeof metadata.preferences === "object" ? metadata.preferences : {};
+    const privacy = metadata.privacy && typeof metadata.privacy === "object" ? metadata.privacy : {};
+    const nextProfile = {
+      name: userName,
+      email: user?.email ?? "",
+      avatarSeed: getMetadataString(metadata.avatar_seed, userName || "Voyager"),
+      avatarStyle: getMetadataString(metadata.avatar_style, "adventurer"),
+      language: getMetadataString(metadata.language, "en"),
+      personalizationEnabled: getMetadataBoolean("personalization" in preferences ? preferences.personalization : undefined, true),
+      productUpdatesEnabled: getMetadataBoolean("product_updates" in preferences ? preferences.product_updates : undefined, false),
+      publicProfileEnabled: getMetadataBoolean("public_profile" in privacy ? privacy.public_profile : undefined, false),
+    };
+
+    setSavedProfile(nextProfile);
+    setDisplayName(nextProfile.name);
+    setName(nextProfile.name);
+    setEmail(nextProfile.email);
+    setAvatarSeed(nextProfile.avatarSeed);
+    setAvatarStyle(nextProfile.avatarStyle);
+    setLanguage(nextProfile.language);
+    setPersonalizationEnabled(nextProfile.personalizationEnabled);
+    setProductUpdatesEnabled(nextProfile.productUpdatesEnabled);
+    setPublicProfileEnabled(nextProfile.publicProfileEnabled);
+  }
 
   useEffect(() => {
     async function loadUser() {
       if (!isSupabaseConfigured) return;
 
       const { data } = await supabase.auth.getUser();
-      const userName = getUserDisplayName(data.user);
-      setDisplayName(userName);
-      setName(userName);
-      setEmail(data.user?.email ?? "");
+      applyUserProfile(data.user);
     }
 
     loadUser();
@@ -133,10 +212,7 @@ export default function Home() {
     if (isSupabaseConfigured) {
       const { data } = await supabase.auth.getUser();
       if (data.user) {
-        const userName = getUserDisplayName(data.user);
-        setDisplayName(userName);
-        setName(userName);
-        setEmail(data.user.email ?? "");
+        applyUserProfile(data.user);
         if (targetPath !== "/") {
           router.push(targetPath);
         }
@@ -204,12 +280,33 @@ export default function Home() {
       }
 
       if (mode === "profile") {
+        const nextEmail = email.trim();
+        if (!nextEmail) {
+          toast.error("Enter your email");
+          return;
+        }
+
         const { data, error } = await supabase.auth.updateUser({
-          data: { full_name: displayName, name: displayName },
+          email: nextEmail,
+          data: {
+            full_name: displayName,
+            name: displayName,
+            avatar_seed: avatarSeed,
+            avatar_style: avatarStyle,
+            avatar_url: getAvatarUrl(avatarStyle, avatarSeed),
+            language,
+            preferences: {
+              personalization: personalizationEnabled,
+              product_updates: productUpdatesEnabled,
+            },
+            privacy: {
+              public_profile: publicProfileEnabled,
+            },
+          },
         });
         if (error) throw error;
 
-        setDisplayName(getUserDisplayName(data.user));
+        applyUserProfile(data.user);
         setAuthOpen(false);
         return;
       }
@@ -222,7 +319,7 @@ export default function Home() {
           data: { full_name: displayName, name: displayName },
         });
         if (profileError) throw profileError;
-        setDisplayName(getUserDisplayName(profileData.user ?? data.user));
+        applyUserProfile(profileData.user ?? data.user);
 
         setAuthOpen(false);
         if (postAuthPath !== "/") {
@@ -239,7 +336,7 @@ export default function Home() {
       if (error) throw error;
 
       if (data.session) {
-        setDisplayName(getUserDisplayName(data.user));
+        applyUserProfile(data.user);
         setAuthOpen(false);
         if (postAuthPath !== "/") {
           router.push(postAuthPath);
@@ -274,6 +371,48 @@ export default function Home() {
     if (error) toast.error(error.message);
   }
 
+  function randomizeAvatar() {
+    const nextSeed = avatarSeeds[Math.floor(Math.random() * avatarSeeds.length)] ?? "Voyager";
+    setAvatarSeed(`${nextSeed}-${Math.floor(Math.random() * 1000)}`);
+  }
+
+  function discardProfileChanges() {
+    if (!savedProfile) return;
+
+    setName(savedProfile.name);
+    setEmail(savedProfile.email);
+    setAvatarSeed(savedProfile.avatarSeed);
+    setAvatarStyle(savedProfile.avatarStyle);
+    setLanguage(savedProfile.language);
+    setPersonalizationEnabled(savedProfile.personalizationEnabled);
+    setPublicProfileEnabled(savedProfile.publicProfileEnabled);
+    setProductUpdatesEnabled(savedProfile.productUpdatesEnabled);
+  }
+
+  async function signOut() {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      setDisplayName("");
+      setSavedProfile(null);
+      setName("");
+      setEmail("");
+      setPassword("");
+      setAuthOpen(false);
+      router.push("/");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not sign out");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function deleteAccount() {
+    toast.error("Account deletion needs a Supabase Edge Function or server action with admin privileges.");
+  }
+
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#16191d] text-white">
       <section id="home" className="relative min-h-screen scroll-mt-20 overflow-hidden bg-slate-950">
@@ -303,11 +442,16 @@ export default function Home() {
           <nav className="flex items-center justify-end gap-5 sm:gap-6">
             {displayName ? (
               <button
-                className="max-w-36 truncate py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-52"
+                className="inline-flex max-w-44 items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
                 type="button"
                 onClick={openProfilePanel}
               >
-                {displayName}
+                <span
+                  aria-hidden="true"
+                  className="h-7 w-7 shrink-0 rounded-full border border-white/25 bg-white/90 bg-cover bg-center"
+                  style={{ backgroundImage: `url("${getAvatarUrl(displayAvatarStyle, displayAvatarSeed)}")` }}
+                />
+                <span className="truncate">{displayName}</span>
               </button>
             ) : (
               <>
@@ -329,7 +473,7 @@ export default function Home() {
               <Mountain className="h-4 w-4" />
               Multi-city journeys, planned in minutes
             </p>
-            <h1 className="max-w-5xl font-serif text-6xl font-semibold leading-[0.96] tracking-normal text-white drop-shadow-sm sm:text-7xl lg:text-8xl">
+            <h1 className="max-w-5xl font-serif text-6xl font-thin italic leading-[0.96] tracking-normal text-white/88 drop-shadow-sm sm:text-7xl lg:text-8xl">
               Plan Beautiful Trips Across Every Stop
             </h1>
             <p className="mt-7 max-w-2xl text-base font-medium leading-7 text-white/78 sm:text-lg">
@@ -526,8 +670,13 @@ export default function Home() {
 
           <nav className="flex flex-wrap items-center gap-5">
             {displayName ? (
-              <button className="max-w-52 truncate text-white transition hover:text-teal-100" type="button" onClick={openProfilePanel}>
-                {displayName}
+              <button className="inline-flex max-w-60 items-center gap-2 text-white transition hover:text-teal-100" type="button" onClick={openProfilePanel}>
+                <span
+                  aria-hidden="true"
+                  className="h-7 w-7 shrink-0 rounded-full border border-white/20 bg-white/90 bg-cover bg-center"
+                  style={{ backgroundImage: `url("${getAvatarUrl(displayAvatarStyle, displayAvatarSeed)}")` }}
+                />
+                <span className="truncate">{displayName}</span>
               </button>
             ) : (
               <>
@@ -544,17 +693,16 @@ export default function Home() {
       </footer>
 
       {authOpen ? (
-        <aside className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-md overflow-hidden border border-white/25 bg-white/12 p-5 text-white shadow-2xl backdrop-blur-2xl sm:bottom-8 sm:right-8">
+        <aside className="fixed bottom-4 right-4 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg overflow-hidden border border-white/25 bg-white/12 p-5 text-white shadow-2xl backdrop-blur-2xl sm:bottom-8 sm:right-8 sm:max-h-[calc(100dvh-4rem)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,0.36),transparent_22%),radial-gradient(circle_at_82%_6%,rgba(20,184,166,0.24),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.16),rgba(255,255,255,0.04))]" />
-          <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:7px_7px]" />
-          <div className="relative">
+          <div className="relative max-h-[calc(100dvh-4.5rem)] overflow-y-auto pb-20 pr-1 [scrollbar-color:rgba(255,255,255,0.35)_transparent] [scrollbar-width:thin] sm:max-h-[calc(100dvh-6.5rem)]">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase text-white/60">
-                  {mode === "profile" ? "Your profile" : mode === "login" ? "Welcome back" : "Start planning"}
+                  {mode === "profile" ? "Preferences and privacy" : mode === "login" ? "Welcome back" : "Start planning"}
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold text-white">
-                  {mode === "profile" ? "Change name" : mode === "login" ? "Sign in" : "Create account"}
+                  {mode === "profile" ? "Account controls" : mode === "login" ? "Sign in" : "Create account"}
                 </h2>
               </div>
               <button
@@ -569,6 +717,7 @@ export default function Home() {
 
             {!isSupabaseConfigured ? <EnvCallout /> : null}
 
+            {mode !== "profile" ? (
             <div className="mb-4 border border-teal-200/40 bg-teal-100/12 p-3 text-sm text-teal-50">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -582,8 +731,55 @@ export default function Home() {
                 </Button>
               </div>
             </div>
+            ) : null}
 
-            <form className="grid gap-4" onSubmit={handleSubmit}>
+            <form id="home-auth-form" className="grid gap-4" onSubmit={handleSubmit}>
+              {mode === "profile" ? (
+                <div className="grid gap-3 border border-white/12 bg-black/16 p-3">
+                  <div className="flex items-center gap-4">
+                    <div
+                      aria-hidden="true"
+                      className="h-16 w-16 shrink-0 border border-white/20 bg-white/90 bg-cover bg-center"
+                      style={{ backgroundImage: `url("${getAvatarUrl(avatarStyle, avatarSeed)}")` }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">Avatar</p>
+                      <p className="mt-1 text-xs leading-5 text-white/55">Pick an illustrated avatar. No photo upload needed.</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <select
+                      className="min-w-0 border border-white/20 bg-white/18 px-3 py-2 text-sm text-white outline-none [color-scheme:dark]"
+                      value={avatarStyle}
+                      onChange={(event) => setAvatarStyle(event.target.value)}
+                    >
+                      {avatarStyles.map((style) => (
+                        <option key={style} className="bg-slate-950 text-white" value={style}>
+                          {style}
+                        </option>
+                      ))}
+                    </select>
+                    <Button className="border border-white/20 bg-white/10 text-white hover:bg-white/18" type="button" variant="ghost" onClick={randomizeAvatar}>
+                      Change avatar
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-6 gap-2">
+                    {avatarSeeds.map((seed) => (
+                      <button
+                        key={seed}
+                        aria-label={`Use ${seed} avatar`}
+                        className={`aspect-square border bg-white/90 bg-cover bg-center transition ${
+                          avatarSeed.startsWith(seed) ? "border-teal-100 ring-2 ring-teal-100/40" : "border-white/15 hover:border-white/45"
+                        }`}
+                        style={{ backgroundImage: `url("${getAvatarUrl(avatarStyle, seed)}")` }}
+                        type="button"
+                        onClick={() => setAvatarSeed(seed)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="grid gap-2">
                 <Label className="text-white/85" htmlFor="home-name">
                   Name
@@ -598,7 +794,79 @@ export default function Home() {
                   onChange={(event) => handleNameChange(event.target.value)}
                 />
               </div>
-              {mode !== "profile" ? (
+              {mode === "profile" ? (
+                <>
+                  <div className="grid gap-2">
+                    <Label className="text-white/85" htmlFor="home-email">
+                      Email
+                    </Label>
+                    <Input
+                      id="home-email"
+                      className="border-white/20 bg-white/18 text-white placeholder:text-white/45 focus:border-white/45 focus:ring-white/15"
+                      required
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                    />
+                    <p className="text-xs leading-5 text-white/45">Supabase may ask you to confirm a changed email address.</p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-white/85" htmlFor="home-language">
+                      Language preference
+                    </Label>
+                    <select
+                      id="home-language"
+                      className="border border-white/20 bg-white/18 px-3 py-2 text-sm text-white outline-none [color-scheme:dark]"
+                      value={language}
+                      onChange={(event) => setLanguage(event.target.value)}
+                    >
+                      {languageOptions.map((option) => (
+                        <option key={option.value} className="bg-slate-950 text-white" value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid gap-3 border border-white/12 bg-black/16 p-3 text-sm">
+                    <label className="flex items-start gap-3 text-white/78">
+                      <input
+                        checked={personalizationEnabled}
+                        className="mt-1"
+                        type="checkbox"
+                        onChange={(event) => setPersonalizationEnabled(event.target.checked)}
+                      />
+                      <span>
+                        <span className="block font-medium text-white">Personalized planning</span>
+                        <span className="mt-1 block text-xs leading-5 text-white/50">Use saved preferences to prefill future trip planning.</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 text-white/78">
+                      <input
+                        checked={publicProfileEnabled}
+                        className="mt-1"
+                        type="checkbox"
+                        onChange={(event) => setPublicProfileEnabled(event.target.checked)}
+                      />
+                      <span>
+                        <span className="block font-medium text-white">Public profile on shared trips</span>
+                        <span className="mt-1 block text-xs leading-5 text-white/50">Show your display name on public itinerary pages.</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 text-white/78">
+                      <input
+                        checked={productUpdatesEnabled}
+                        className="mt-1"
+                        type="checkbox"
+                        onChange={(event) => setProductUpdatesEnabled(event.target.checked)}
+                      />
+                      <span>
+                        <span className="block font-medium text-white">Product updates</span>
+                        <span className="mt-1 block text-xs leading-5 text-white/50">Allow occasional trip-planning tips and product emails.</span>
+                      </span>
+                    </label>
+                  </div>
+                </>
+              ) : (
                 <>
                   <div className="grid gap-2">
                     <Label className="text-white/85" htmlFor="home-email">
@@ -628,14 +896,28 @@ export default function Home() {
                     />
                   </div>
                 </>
+              )}
+              {mode !== "profile" ? (
+                <Button className="bg-white text-slate-950 hover:bg-teal-100" disabled={!isSupabaseConfigured || loading} type="submit">
+                  <Mail className="h-4 w-4" />
+                  {loading ? "Working..." : mode === "login" ? "Sign in" : "Sign up"}
+                </Button>
               ) : null}
-              <Button className="bg-white text-slate-950 hover:bg-teal-100" disabled={!isSupabaseConfigured || loading} type="submit">
-                <Mail className="h-4 w-4" />
-                {loading ? "Working..." : mode === "profile" ? "Save name" : mode === "login" ? "Sign in" : "Sign up"}
-              </Button>
             </form>
 
-            {mode !== "profile" ? (
+            {mode === "profile" ? (
+              <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 text-sm">
+                <Button className="border border-white/20 bg-white/10 text-white hover:bg-white/18" disabled={loading} type="button" variant="ghost" onClick={signOut}>
+                  Sign out
+                </Button>
+                <button className="text-left text-red-200/85 transition hover:text-red-100" type="button" onClick={deleteAccount}>
+                  Delete account
+                </button>
+                <p className="text-xs leading-5 text-white/42">
+                  Account deletion requires a Supabase admin function so private auth records are not exposed in the browser.
+                </p>
+              </div>
+            ) : (
               <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:justify-between">
                 <button
                   className="text-left font-medium text-teal-100 hover:text-white"
@@ -650,8 +932,25 @@ export default function Home() {
                   </button>
                 ) : null}
               </div>
-            ) : null}
+            )}
           </div>
+          {profileDirty ? (
+            <div className="absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-slate-950/72 p-1.5 shadow-2xl backdrop-blur-xl">
+              <Button className="rounded-full bg-white/92 px-5 text-slate-950 hover:bg-teal-100" disabled={!isSupabaseConfigured || loading} form="home-auth-form" size="sm" type="submit">
+                {loading ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                className="rounded-full border border-white/15 bg-white/10 px-5 text-white hover:bg-white/18"
+                disabled={loading}
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={discardProfileChanges}
+              >
+                Discard
+              </Button>
+            </div>
+          ) : null}
         </aside>
       ) : null}
     </main>
