@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { getUserDisplayName } from "@/lib/user";
 
 const demoEmail = "demo@voyage.test";
 const demoPassword = "voyager@321";
 
-type AuthMode = "login" | "signup";
+type AuthMode = "login" | "signup" | "profile";
 
 const recommendedPlans = [
   {
@@ -57,14 +58,29 @@ export default function Home() {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
+  const [name, setName] = useState("");
+  const [nameEdited, setNameEdited] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
   const [postAuthPath, setPostAuthPath] = useState("/dashboard");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
 
   useEffect(() => {
+    async function loadUser() {
+      if (!isSupabaseConfigured) return;
+
+      const { data } = await supabase.auth.getUser();
+      const userName = getUserDisplayName(data.user);
+      setDisplayName(userName);
+      setName(userName);
+      setEmail(data.user?.email ?? "");
+    }
+
+    loadUser();
+
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("auth");
 
@@ -82,7 +98,13 @@ export default function Home() {
     if (isSupabaseConfigured) {
       const { data } = await supabase.auth.getUser();
       if (data.user) {
-        router.push(targetPath);
+        const userName = getUserDisplayName(data.user);
+        setDisplayName(userName);
+        setName(userName);
+        setEmail(data.user.email ?? "");
+        if (targetPath !== "/") {
+          router.push(targetPath);
+        }
         return;
       }
     }
@@ -92,25 +114,80 @@ export default function Home() {
     setAuthOpen(true);
   }
 
+  function openProfilePanel() {
+    setMode("profile");
+    setName(displayName);
+    setPostAuthPath("/");
+    setAuthOpen(true);
+  }
+
+  function handleNameChange(value: string) {
+    setNameEdited(true);
+    setName(value);
+  }
+
+  function handleEmailChange(value: string) {
+    setEmail(value);
+    if (!nameEdited) {
+      setName(value.split("@")[0].replace(/[._-]+/g, " ").trim());
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
 
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Welcome back");
-        router.push(postAuthPath);
+      const displayName = name.trim();
+      if (!displayName) {
+        toast.error("Enter your name");
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (mode === "profile") {
+        const { data, error } = await supabase.auth.updateUser({
+          data: { full_name: displayName, name: displayName },
+        });
+        if (error) throw error;
+
+        setDisplayName(getUserDisplayName(data.user));
+        toast.success("Name updated");
+        setAuthOpen(false);
+        return;
+      }
+
+      if (mode === "login") {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        const { data: profileData, error: profileError } = await supabase.auth.updateUser({
+          data: { full_name: displayName, name: displayName },
+        });
+        if (profileError) throw profileError;
+        setDisplayName(getUserDisplayName(profileData.user ?? data.user));
+
+        toast.success("Welcome back");
+        setAuthOpen(false);
+        if (postAuthPath !== "/") {
+          router.push(postAuthPath);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: displayName, name: displayName } },
+      });
       if (error) throw error;
 
       if (data.session) {
+        setDisplayName(getUserDisplayName(data.user));
         toast.success("Account created");
-        router.push(postAuthPath);
+        setAuthOpen(false);
+        if (postAuthPath !== "/") {
+          router.push(postAuthPath);
+        }
       } else {
         toast.success("Account created. Check email confirmation if enabled.");
         setMode("login");
@@ -124,6 +201,8 @@ export default function Home() {
 
   function useDemoLogin() {
     setMode("login");
+    setName("Demo Voyager");
+    setNameEdited(true);
     setEmail(demoEmail);
     setPassword(demoPassword);
     toast.success("Demo credentials filled");
@@ -170,13 +249,25 @@ export default function Home() {
             Voyage
           </button>
           <nav className="flex items-center justify-end gap-4">
-            <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
-              Log in
-            </button>
-            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/dashboard")}>
-              Sign up
-            </button>
-            <ArrowRight className="hidden h-4 w-4 sm:block" />
+            {displayName ? (
+              <button
+                className="max-w-36 truncate text-right text-white transition hover:text-teal-100 sm:max-w-52"
+                type="button"
+                onClick={openProfilePanel}
+              >
+                {displayName}
+              </button>
+            ) : (
+              <>
+                <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/")}>
+                  Log in
+                </button>
+                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
+                  Sign up
+                </button>
+                <ArrowRight className="hidden h-4 w-4 sm:block" />
+              </>
+            )}
           </nav>
         </header>
 
@@ -336,12 +427,20 @@ export default function Home() {
             <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
               Upcoming trips
             </button>
-            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
-              Log in
-            </button>
-            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/dashboard")}>
-              Sign up
-            </button>
+            {displayName ? (
+              <button className="max-w-52 truncate text-white transition hover:text-teal-100" type="button" onClick={openProfilePanel}>
+                {displayName}
+              </button>
+            ) : (
+              <>
+                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/")}>
+                  Log in
+                </button>
+                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
+                  Sign up
+                </button>
+              </>
+            )}
           </div>
         </div>
       </footer>
@@ -353,8 +452,12 @@ export default function Home() {
           <div className="relative">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase text-white/60">{mode === "login" ? "Welcome back" : "Start planning"}</p>
-                <h2 className="mt-1 text-2xl font-semibold text-white">{mode === "login" ? "Sign in" : "Create account"}</h2>
+                <p className="text-xs font-semibold uppercase text-white/60">
+                  {mode === "profile" ? "Your profile" : mode === "login" ? "Welcome back" : "Start planning"}
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold text-white">
+                  {mode === "profile" ? "Change name" : mode === "login" ? "Sign in" : "Create account"}
+                </h2>
               </div>
               <button
                 className="flex h-9 w-9 items-center justify-center border border-white/20 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
@@ -384,52 +487,72 @@ export default function Home() {
 
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <div className="grid gap-2">
-                <Label className="text-white/85" htmlFor="home-email">
-                  Email
+                <Label className="text-white/85" htmlFor="home-name">
+                  Name
                 </Label>
                 <Input
-                  id="home-email"
+                  id="home-name"
                   className="border-white/20 bg-white/18 text-white placeholder:text-white/45 focus:border-white/45 focus:ring-white/15"
+                  placeholder="Your name"
                   required
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  type="text"
+                  value={name}
+                  onChange={(event) => handleNameChange(event.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
-                <Label className="text-white/85" htmlFor="home-password">
-                  Password
-                </Label>
-                <Input
-                  id="home-password"
-                  className="border-white/20 bg-white/18 text-white placeholder:text-white/45 focus:border-white/45 focus:ring-white/15"
-                  minLength={6}
-                  required
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </div>
+              {mode !== "profile" ? (
+                <>
+                  <div className="grid gap-2">
+                    <Label className="text-white/85" htmlFor="home-email">
+                      Email
+                    </Label>
+                    <Input
+                      id="home-email"
+                      className="border-white/20 bg-white/18 text-white placeholder:text-white/45 focus:border-white/45 focus:ring-white/15"
+                      required
+                      type="email"
+                      value={email}
+                      onChange={(event) => handleEmailChange(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-white/85" htmlFor="home-password">
+                      Password
+                    </Label>
+                    <Input
+                      id="home-password"
+                      className="border-white/20 bg-white/18 text-white placeholder:text-white/45 focus:border-white/45 focus:ring-white/15"
+                      minLength={6}
+                      required
+                      type="password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                  </div>
+                </>
+              ) : null}
               <Button className="bg-white text-slate-950 hover:bg-teal-100" disabled={!isSupabaseConfigured || loading} type="submit">
                 <Mail className="h-4 w-4" />
-                {loading ? "Working..." : mode === "login" ? "Sign in" : "Sign up"}
+                {loading ? "Working..." : mode === "profile" ? "Save name" : mode === "login" ? "Sign in" : "Sign up"}
               </Button>
             </form>
 
-            <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:justify-between">
-              <button
-                className="text-left font-medium text-teal-100 hover:text-white"
-                type="button"
-                onClick={() => setMode(mode === "login" ? "signup" : "login")}
-              >
-                {mode === "login" ? "Need an account?" : "Already have an account?"}
-              </button>
-              {mode === "login" ? (
-                <button className="text-left text-white/65 hover:text-white" type="button" onClick={resetPassword}>
-                  Forgot password
+            {mode !== "profile" ? (
+              <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:justify-between">
+                <button
+                  className="text-left font-medium text-teal-100 hover:text-white"
+                  type="button"
+                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                >
+                  {mode === "login" ? "Need an account?" : "Already have an account?"}
                 </button>
-              ) : null}
-            </div>
+                {mode === "login" ? (
+                  <button className="text-left text-white/65 hover:text-white" type="button" onClick={resetPassword}>
+                    Forgot password
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </aside>
       ) : null}

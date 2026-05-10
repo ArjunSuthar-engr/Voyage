@@ -17,11 +17,12 @@ import { recommendedCities } from "@/lib/demo-data";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { createDemoTrip, deleteTrip, getTrips, updateTrip } from "@/lib/trips";
 import type { Trip, TripInput } from "@/lib/types";
+import { getUserDisplayName } from "@/lib/user";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
   const [demoLoading, setDemoLoading] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
@@ -48,7 +49,7 @@ export default function DashboardPage() {
         router.replace("/?auth=login&next=/dashboard");
         return;
       }
-      setEmail(data.user.email ?? "");
+      setDisplayName(getUserDisplayName(data.user));
       await loadTrips();
     }
 
@@ -97,7 +98,7 @@ export default function DashboardPage() {
         {!isSupabaseConfigured ? <EnvCallout /> : null}
         <section className="flex flex-col justify-between gap-4 rounded-lg border border-stone-200 bg-white p-5 shadow-sm sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm text-stone-500">Welcome{email ? `, ${email}` : ""}</p>
+            <p className="text-sm text-stone-500">Welcome{displayName ? `, ${displayName}` : ""}</p>
             <h1 className="mt-1 text-3xl font-semibold text-stone-950">Plan your next city loop</h1>
             <p className="mt-2 max-w-2xl text-sm text-stone-600">
               Build a multi-city itinerary with stops, activity templates, budget tracking, and a public share page.
