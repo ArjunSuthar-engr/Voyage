@@ -116,21 +116,19 @@ export default function LoginPage() {
               <CardTitle>{mode === "login" ? "Sign in" : "Create account"}</CardTitle>
             </CardHeader>
             <CardContent>
-              {mode === "login" ? (
-                <div className="mb-4 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-950">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-medium">Demo login for judges</p>
-                      <p className="mt-1 text-teal-800">
-                        {demoEmail} / {demoPassword}
-                      </p>
-                    </div>
-                    <Button size="sm" type="button" variant="secondary" onClick={useDemoLogin}>
-                      Use demo login
-                    </Button>
+              <div className="mb-4 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-950">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium">Demo login for judges</p>
+                    <p className="mt-1 text-teal-800">
+                      {demoEmail} / {demoPassword}
+                    </p>
                   </div>
+                  <Button size="sm" type="button" variant="secondary" onClick={useDemoLogin}>
+                    Use demo login
+                  </Button>
                 </div>
-              ) : null}
+              </div>
               <form className="grid gap-4" onSubmit={handleSubmit}>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
