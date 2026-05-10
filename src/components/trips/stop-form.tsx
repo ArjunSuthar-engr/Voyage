@@ -1,32 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { CitySearch } from "@/components/trips/city-search";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { displayDateRange } from "@/lib/dates";
+import { buildStopSuggestions, type StopSuggestion } from "@/lib/stop-suggestions";
 import type { Stop, StopInput } from "@/lib/types";
 
 type StopFormProps = {
   tripId: string;
+  tripName: string;
+  tripDescription?: string | null;
   tripStartDate: string;
   tripEndDate: string;
+  existingStops: Stop[];
   initialStop?: Stop;
   nextSortOrder: number;
   onSubmit: (input: StopInput) => Promise<void>;
 };
 
-export function StopForm({ tripId, tripStartDate, tripEndDate, initialStop, nextSortOrder, onSubmit }: StopFormProps) {
-  const [city, setCity] = useState(initialStop?.city ?? "");
-  const [country, setCountry] = useState(initialStop?.country ?? "");
-  const [startDate, setStartDate] = useState(initialStop?.start_date ?? tripStartDate);
-  const [endDate, setEndDate] = useState(initialStop?.end_date ?? tripStartDate);
-  const [stayCost, setStayCost] = useState(String(initialStop?.stay_cost ?? 0));
-  const [transportCost, setTransportCost] = useState(String(initialStop?.transport_cost ?? 0));
-  const [notes, setNotes] = useState(initialStop?.notes ?? "");
+export function StopForm({
+  tripId,
+  tripName,
+  tripDescription,
+  tripStartDate,
+  tripEndDate,
+  existingStops,
+  initialStop,
+  nextSortOrder,
+  onSubmit,
+}: StopFormProps) {
+  const suggestions = useMemo(
+    () =>
+      buildStopSuggestions({
+        tripName,
+        tripDescription,
+        tripStartDate,
+        tripEndDate,
+        existingStops,
+      }),
+    [existingStops, tripDescription, tripEndDate, tripName, tripStartDate],
+  );
+  const nextSuggestion = !initialStop ? suggestions.find((suggestion) => !suggestion.alreadyAdded) : undefined;
+  const [city, setCity] = useState(initialStop?.city ?? nextSuggestion?.city ?? "");
+  const [country, setCountry] = useState(initialStop?.country ?? nextSuggestion?.country ?? "");
+  const [startDate, setStartDate] = useState(initialStop?.start_date ?? nextSuggestion?.start_date ?? tripStartDate);
+  const [endDate, setEndDate] = useState(initialStop?.end_date ?? nextSuggestion?.end_date ?? tripStartDate);
+  const [stayCost, setStayCost] = useState(String(initialStop?.stay_cost ?? nextSuggestion?.stay_cost ?? 0));
+  const [transportCost, setTransportCost] = useState(String(initialStop?.transport_cost ?? nextSuggestion?.transport_cost ?? 0));
+  const [notes, setNotes] = useState(initialStop?.notes ?? nextSuggestion?.notes ?? "");
   const [saving, setSaving] = useState(false);
+
+  function applySuggestion(suggestion: StopSuggestion) {
+    setCity(suggestion.city);
+    setCountry(suggestion.country);
+    setStartDate(suggestion.start_date);
+    setEndDate(suggestion.end_date);
+    setStayCost(String(suggestion.stay_cost));
+    setTransportCost(String(suggestion.transport_cost));
+    setNotes(suggestion.notes);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,13 +142,47 @@ export function StopForm({ tripId, tripStartDate, tripEndDate, initialStop, next
           {saving ? "Saving..." : initialStop ? "Update stop" : "Add stop"}
         </Button>
       </form>
-      <div className="rounded-none border border-white/10 bg-white/5 p-3">
-        <CitySearch
-          onSelect={(option) => {
-            setCity(option.city);
-            setCountry(option.country);
-          }}
-        />
+      <div className="space-y-4 rounded-none border border-white/10 bg-white/5 p-3">
+        {!initialStop && suggestions.length ? (
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold uppercase text-white/40">Suggested stops</p>
+              <p className="mt-1 text-sm text-white/60">Route picks matched to {tripName}.</p>
+            </div>
+            <div className="grid gap-2">
+              {suggestions.map((suggestion, index) => (
+                <div key={`${suggestion.city}-${suggestion.country}`} className="border border-white/10 bg-[#181b20] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge>Stop {index + 1}</Badge>
+                        <span className="text-xs text-white/50">{displayDateRange(suggestion.start_date, suggestion.end_date)}</span>
+                      </div>
+                      <p className="mt-2 font-medium text-white">
+                        {suggestion.city}, {suggestion.country}
+                      </p>
+                      <p className="mt-1 text-xs text-white/55">{suggestion.notes}</p>
+                      <p className="mt-2 text-xs text-white/35">{suggestion.source}</p>
+                    </div>
+                    <Button
+                      disabled={suggestion.alreadyAdded}
+                      size="sm"
+                      type="button"
+                      variant={suggestion.alreadyAdded ? "ghost" : "secondary"}
+                      onClick={() => applySuggestion(suggestion)}
+                    >
+                      {suggestion.alreadyAdded ? "Added" : "Use"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="border border-dashed border-white/15 bg-[#181b20] p-4 text-sm text-white/55">
+            No curated stops are available for this trip name yet. Add the stop manually on the left.
+          </div>
+        )}
       </div>
     </div>
   );

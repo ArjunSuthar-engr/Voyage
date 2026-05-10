@@ -375,10 +375,13 @@ export default function TripDetailPage() {
         }}
       >
         <StopForm
+          existingStops={trip.stops}
           initialStop={editingStop}
           nextSortOrder={trip.stops.length + 1}
+          tripDescription={trip.description}
           tripEndDate={trip.end_date}
           tripId={trip.id}
+          tripName={trip.name}
           tripStartDate={trip.start_date}
           onSubmit={handleSaveStop}
         />
