@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarDays, Mail, MapPin, Menu, Mountain, Users, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, CalendarDays, Check, ChevronDown, Mail, MapPin, Menu, Mountain, Users, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EnvCallout } from "@/components/setup/env-callout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { addDays, toInputDate } from "@/lib/dates";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { getUserDisplayName } from "@/lib/user";
 
@@ -17,6 +18,14 @@ const demoEmail = "demo@voyage.test";
 const demoPassword = "voyager@321";
 
 type AuthMode = "login" | "signup" | "profile";
+
+type DropdownLayout = {
+  left: number;
+  width: number;
+  top?: number;
+  bottom?: number;
+  placement: "top" | "bottom";
+};
 
 const recommendedPlans = [
   {
@@ -81,8 +90,25 @@ const budgetHighlights = [
   { label: "Premium", value: "₹₹₹", detail: "Boutique stays, private transfers" },
 ];
 
+const plannerStyleOptions = [
+  "Food, stays, transit, activities",
+  "Culture, museums, neighborhoods",
+  "Budget saver route",
+  "Premium stays and private transfers",
+  "Family friendly pacing",
+];
+
+const plannerDestinationOptions = recommendedPlans.map((plan) => ({
+  label: plan.title,
+  detail: `${plan.country} · ${plan.route.join(" → ")}`,
+  searchText: `${plan.country} ${plan.title} ${plan.route.join(" ")} ${plan.places.join(" ")}`.toLowerCase(),
+}));
+
 export default function Home() {
   const router = useRouter();
+  const plannerFormRef = useRef<HTMLFormElement | null>(null);
+  const destinationControlRef = useRef<HTMLDivElement | null>(null);
+  const styleControlRef = useRef<HTMLDivElement | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
@@ -90,10 +116,24 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [tripDestination, setTripDestination] = useState(recommendedPlans[0]?.title ?? "");
+  const [travelStart, setTravelStart] = useState("");
+  const [travelEnd, setTravelEnd] = useState("");
+  const [tripStyle, setTripStyle] = useState("Food, stays, transit, activities");
+  const [destinationOpen, setDestinationOpen] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [destinationLayout, setDestinationLayout] = useState<DropdownLayout | null>(null);
+  const [styleLayout, setStyleLayout] = useState<DropdownLayout | null>(null);
   const [loading, setLoading] = useState(false);
   const [postAuthPath, setPostAuthPath] = useState("/dashboard");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
+  const destinationQuery = tripDestination.trim().toLowerCase();
+  const destinationTokens = destinationQuery.split(/[,\s]+/).filter(Boolean);
+  const destinationHasExactMatch = plannerDestinationOptions.some((option) => option.label.toLowerCase() === destinationQuery);
+  const destinationMatches = destinationQuery && !destinationHasExactMatch
+    ? plannerDestinationOptions.filter((option) => destinationTokens.some((token) => option.searchText.includes(token)))
+    : plannerDestinationOptions;
 
   useEffect(() => {
     async function loadUser() {
@@ -120,6 +160,69 @@ export default function Home() {
       }, 0);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!destinationOpen && !styleOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && plannerFormRef.current?.contains(target)) return;
+      setDestinationOpen(false);
+      setStyleOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [destinationOpen, styleOpen]);
+
+  useEffect(() => {
+    function measureDropdown(anchor: HTMLElement, expectedHeight: number): DropdownLayout {
+      const rect = anchor.getBoundingClientRect();
+      const gap = 12;
+      const viewportPadding = 16;
+      const maxLeft = Math.max(viewportPadding, window.innerWidth - rect.width - viewportPadding);
+      const left = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const placement = spaceBelow < expectedHeight + gap && spaceAbove > spaceBelow ? "top" : "bottom";
+
+      if (placement === "top") {
+        return {
+          left,
+          width: rect.width,
+          bottom: window.innerHeight - rect.top + gap,
+          placement,
+        };
+      }
+
+      return {
+        left,
+        width: rect.width,
+        top: rect.bottom + gap,
+        placement,
+      };
+    }
+
+    function updateDropdownPositions() {
+      if (destinationOpen && destinationControlRef.current) {
+        setDestinationLayout(measureDropdown(destinationControlRef.current, Math.max(96, destinationMatches.length * 76)));
+      }
+
+      if (styleOpen && styleControlRef.current) {
+        setStyleLayout(measureDropdown(styleControlRef.current, plannerStyleOptions.length * 48));
+      }
+    }
+
+    updateDropdownPositions();
+
+    if (!destinationOpen && !styleOpen) return;
+    window.addEventListener("resize", updateDropdownPositions);
+    window.addEventListener("scroll", updateDropdownPositions, true);
+    return () => {
+      window.removeEventListener("resize", updateDropdownPositions);
+      window.removeEventListener("scroll", updateDropdownPositions, true);
+    };
+  }, [destinationMatches.length, destinationOpen, styleOpen]);
 
   async function openAuthPanel(nextMode: AuthMode, targetPath: string) {
     if (isSupabaseConfigured) {
@@ -158,6 +261,39 @@ export default function Home() {
     if (!nameEdited) {
       setName(value.split("@")[0].replace(/[._-]+/g, " ").trim());
     }
+  }
+
+  function buildTripPlannerPath() {
+    const params = new URLSearchParams();
+    const destination = tripDestination.trim();
+
+    if (destination) params.set("destination", destination);
+    if (travelStart) params.set("start", travelStart);
+    if (travelEnd) params.set("end", travelEnd);
+    if (tripStyle) params.set("style", tripStyle);
+
+    const query = params.toString();
+    return `/trips/new${query ? `?${query}` : ""}`;
+  }
+
+  function selectPlannerDestination(index: number) {
+    const plan = recommendedPlans[index];
+    if (!plan) return;
+
+    setTripDestination(plan.title);
+    setSelectedPlanIndex(index);
+    setDestinationOpen(false);
+  }
+
+  async function handlePlannerSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (travelStart && travelEnd && travelEnd < travelStart) {
+      toast.error("End date must be after start date");
+      return;
+    }
+
+    await openAuthPanel("login", buildTripPlannerPath());
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -307,39 +443,170 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="absolute inset-x-4 bottom-8 z-20 mx-auto max-w-6xl border border-white/18 bg-slate-950/48 p-4 shadow-2xl backdrop-blur-md sm:bottom-10 sm:p-5">
+        <form
+          ref={plannerFormRef}
+          className="absolute inset-x-4 bottom-8 z-20 mx-auto max-w-6xl border border-white/18 bg-slate-950/48 p-4 shadow-2xl backdrop-blur-md sm:bottom-10 sm:p-5"
+          onSubmit={handlePlannerSubmit}
+        >
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
             <div className="border-b border-white/20 pb-3">
-              <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55" htmlFor="hero-destination">
                 <MapPin className="h-3.5 w-3.5" />
                 Destination
-              </p>
-              <p className="text-sm font-medium text-white">Tokyo, Kyoto, Lisbon...</p>
+              </label>
+              <div ref={destinationControlRef} className="relative">
+                <input
+                  id="hero-destination"
+                  className="w-full bg-transparent pr-8 text-sm font-medium text-white outline-none placeholder:text-white/38"
+                  required
+                  value={tripDestination}
+                  onFocus={() => {
+                    setDestinationOpen(true);
+                    setStyleOpen(false);
+                  }}
+                  onChange={(event) => {
+                    setTripDestination(event.target.value);
+                    setDestinationOpen(true);
+                    setStyleOpen(false);
+                  }}
+                />
+                <button
+                  aria-label="Show destination recommendations"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-white/70 transition hover:text-white"
+                  type="button"
+                  onClick={() => {
+                    setDestinationOpen((open) => !open);
+                    setStyleOpen(false);
+                  }}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {destinationOpen && destinationLayout ? (
+                  <div
+                    className="fixed z-[100] border border-white/18 bg-[#101216]/98 p-1 shadow-2xl backdrop-blur-md"
+                    style={{
+                      left: destinationLayout.left,
+                      width: destinationLayout.width,
+                      ...(destinationLayout.placement === "top" ? { bottom: destinationLayout.bottom } : { top: destinationLayout.top }),
+                    }}
+                  >
+                    {destinationMatches.length ? (
+                      destinationMatches.map((option) => {
+                        const index = plannerDestinationOptions.findIndex((item) => item.label === option.label);
+                        const selected = tripDestination.trim().toLowerCase() === option.label.toLowerCase();
+                        return (
+                          <button
+                            key={option.label}
+                            className={`flex w-full items-start justify-between gap-3 p-3 text-left transition hover:bg-white/10 ${
+                              selected ? "bg-white/10 text-white" : "text-white/72"
+                            }`}
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => selectPlannerDestination(index)}
+                          >
+                            <span>
+                              <span className="block font-serif text-lg font-semibold text-white">{option.label}</span>
+                              <span className="mt-1 block text-xs text-white/48">{option.detail}</span>
+                            </span>
+                            {selected ? <Check className="mt-1 h-4 w-4 shrink-0 text-teal-100" /> : null}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="p-3 text-sm text-white/52">No matching recommended destination.</div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </div>
             <div className="border-b border-white/20 pb-3">
               <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55">
                 <CalendarDays className="h-3.5 w-3.5" />
                 Dates
               </p>
-              <p className="text-sm font-medium text-white">Choose your travel window</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  aria-label="Start date"
+                  className="min-w-0 bg-transparent text-sm font-medium text-white outline-none [color-scheme:dark]"
+                  min={toInputDate(new Date())}
+                  type="date"
+                  value={travelStart}
+                  onChange={(event) => {
+                    const nextStart = event.target.value;
+                    setTravelStart(nextStart);
+                    if (!travelEnd && nextStart) setTravelEnd(toInputDate(addDays(new Date(`${nextStart}T00:00:00`), 7)));
+                  }}
+                />
+                <input
+                  aria-label="End date"
+                  className="min-w-0 bg-transparent text-sm font-medium text-white outline-none [color-scheme:dark]"
+                  min={travelStart || toInputDate(new Date())}
+                  type="date"
+                  value={travelEnd}
+                  onChange={(event) => setTravelEnd(event.target.value)}
+                />
+              </div>
             </div>
             <div className="border-b border-white/20 pb-3">
-              <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55" htmlFor="hero-style">
                 <Users className="h-3.5 w-3.5" />
                 Style
-              </p>
-              <p className="text-sm font-medium text-white">Food, stays, transit, activities</p>
+              </label>
+              <div ref={styleControlRef} className="relative">
+                <button
+                  id="hero-style"
+                  aria-expanded={styleOpen}
+                  className="flex w-full items-center justify-between gap-3 bg-transparent text-left text-sm font-medium text-white outline-none"
+                  type="button"
+                  onClick={() => {
+                    setStyleOpen((open) => !open);
+                    setDestinationOpen(false);
+                  }}
+                >
+                  <span className="truncate">{tripStyle}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition ${styleOpen ? "rotate-180" : ""}`} />
+                </button>
+                {styleOpen && styleLayout ? (
+                  <div
+                    className="fixed z-[100] border border-white/18 bg-[#101216]/98 p-1 shadow-2xl backdrop-blur-md"
+                    style={{
+                      left: styleLayout.left,
+                      width: styleLayout.width,
+                      ...(styleLayout.placement === "top" ? { bottom: styleLayout.bottom } : { top: styleLayout.top }),
+                    }}
+                  >
+                    {plannerStyleOptions.map((option) => {
+                      const selected = option === tripStyle;
+                      return (
+                        <button
+                          key={option}
+                          className={`flex w-full items-center justify-between gap-3 p-3 text-left text-sm transition hover:bg-white/10 ${
+                            selected ? "bg-white/10 text-white" : "text-white/72"
+                          }`}
+                          type="button"
+                          onClick={() => {
+                            setTripStyle(option);
+                            setStyleOpen(false);
+                          }}
+                        >
+                          <span>{option}</span>
+                          {selected ? <Check className="h-4 w-4 shrink-0 text-teal-100" /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
             </div>
             <button
               className="inline-flex h-12 items-center justify-center gap-3 rounded-none bg-white px-6 text-sm font-semibold uppercase text-slate-950 transition hover:bg-teal-100"
-              type="button"
-              onClick={() => openAuthPanel("login", "/trips/new")}
+              type="submit"
             >
               Plan Trip
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        </section>
+        </form>
       </section>
 
       <section className="relative z-10 border-y border-white/10 bg-[#181b20] px-4 py-20 sm:px-8">

@@ -11,18 +11,19 @@ import type { Trip, TripInput } from "@/lib/types";
 
 type TripFormProps = {
   initialTrip?: Trip;
+  initialValues?: Partial<TripInput>;
   submitLabel: string;
   onSubmit: (input: TripInput) => Promise<void>;
 };
 
-export function TripForm({ initialTrip, submitLabel, onSubmit }: TripFormProps) {
+export function TripForm({ initialTrip, initialValues, submitLabel, onSubmit }: TripFormProps) {
   const defaultStart = toInputDate(addDays(new Date(), 21));
   const defaultEnd = toInputDate(addDays(new Date(), 28));
-  const [name, setName] = useState(initialTrip?.name ?? "");
-  const [description, setDescription] = useState(initialTrip?.description ?? "");
-  const [startDate, setStartDate] = useState(initialTrip?.start_date ?? defaultStart);
-  const [endDate, setEndDate] = useState(initialTrip?.end_date ?? defaultEnd);
-  const [budgetAmount, setBudgetAmount] = useState(String(initialTrip?.budget_amount ?? 250000));
+  const [name, setName] = useState(initialTrip?.name ?? initialValues?.name ?? "");
+  const [description, setDescription] = useState(initialTrip?.description ?? initialValues?.description ?? "");
+  const [startDate, setStartDate] = useState(initialTrip?.start_date ?? initialValues?.start_date ?? defaultStart);
+  const [endDate, setEndDate] = useState(initialTrip?.end_date ?? initialValues?.end_date ?? defaultEnd);
+  const [budgetAmount, setBudgetAmount] = useState(String(initialTrip?.budget_amount ?? initialValues?.budget_amount ?? 250000));
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

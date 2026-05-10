@@ -16,15 +16,37 @@ import type { TripInput } from "@/lib/types";
 export default function NewTripPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [initialTripValues, setInitialTripValues] = useState<Partial<TripInput>>({});
 
   useEffect(() => {
+    function readInitialTripValues() {
+      const params = new URLSearchParams(window.location.search);
+      const destination = params.get("destination")?.trim() ?? "";
+      const style = params.get("style")?.trim() ?? "";
+      const startDate = params.get("start") ?? undefined;
+      const endDate = params.get("end") ?? undefined;
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+      setInitialTripValues({
+        name: destination ? `${destination} Trip` : undefined,
+        description: destination && style ? `${style} route for ${destination}.` : undefined,
+        start_date: startDate && datePattern.test(startDate) ? startDate : undefined,
+        end_date: endDate && datePattern.test(endDate) ? endDate : undefined,
+      });
+    }
+
     async function guard() {
+      readInitialTripValues();
+
       if (!isSupabaseConfigured) {
         setReady(true);
         return;
       }
       const { data } = await supabase.auth.getUser();
-      if (!data.user) router.replace("/?auth=login&next=/trips/new");
+      if (!data.user) {
+        const currentPath = `/trips/new${window.location.search}`;
+        router.replace(`/?auth=login&next=${encodeURIComponent(currentPath)}`);
+      }
       else setReady(true);
     }
 
@@ -56,7 +78,13 @@ export default function NewTripPage() {
             <CardTitle>Plan a new trip</CardTitle>
             <p className="text-sm text-white/50">Start with the trip shell. Cities and activities come next.</p>
           </CardHeader>
-          <CardContent>{ready ? <TripForm submitLabel="Create trip" onSubmit={handleCreateTrip} /> : <p className="text-sm text-white/50">Loading...</p>}</CardContent>
+          <CardContent>
+            {ready ? (
+              <TripForm initialValues={initialTripValues} submitLabel="Create trip" onSubmit={handleCreateTrip} />
+            ) : (
+              <p className="text-sm text-white/50">Loading...</p>
+            )}
+          </CardContent>
         </Card>
       </div>
     </AppShell>
