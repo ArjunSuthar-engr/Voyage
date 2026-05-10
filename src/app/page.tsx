@@ -110,6 +110,7 @@ export default function Home() {
   const destinationControlRef = useRef<HTMLDivElement | null>(null);
   const styleControlRef = useRef<HTMLDivElement | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [nameEdited, setNameEdited] = useState(false);
@@ -379,8 +380,156 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#16191d] text-white">
-      <section className="relative min-h-screen overflow-hidden bg-slate-950">
+    <main className="relative min-h-screen bg-[#16191d] text-white">
+      <header className="sticky top-0 z-[80] border-b border-white/10 bg-black">
+        <div className="mx-auto grid min-h-16 w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 text-xs font-semibold uppercase text-white/78 sm:px-8 lg:grid-cols-[1fr_auto_1fr]">
+          <div className="flex min-w-0 items-center">
+            <button
+              aria-expanded={mobileNavOpen}
+              aria-label="Toggle navigation"
+              className="inline-flex h-10 w-10 items-center justify-center border border-white/12 text-white transition hover:border-white/30 hover:bg-white/10 md:hidden"
+              type="button"
+              onClick={() => setMobileNavOpen((open) => !open)}
+            >
+              {mobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+            <nav className="hidden min-w-0 items-center gap-5 md:flex">
+              <a className="inline-flex items-center gap-3 transition hover:text-white" href="#home">
+                <Menu className="h-4 w-4" />
+                <span>Menu</span>
+              </a>
+              <a className="transition hover:text-white" href="#recommended">
+                Places
+              </a>
+              <a className="transition hover:text-white" href="#budget">
+                Budget
+              </a>
+            </nav>
+          </div>
+
+          <a
+            className="justify-self-center font-serif text-xl font-semibold italic normal-case text-white transition hover:text-teal-100 sm:text-2xl"
+            href="#home"
+            onClick={() => setMobileNavOpen(false)}
+          >
+            Voyage
+          </a>
+
+          <nav className="flex min-w-0 items-center justify-end gap-3 sm:gap-5">
+            <a className="hidden transition hover:text-white lg:inline" href="#contact">
+              Contact
+            </a>
+            <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
+              Dashboard
+            </button>
+            <button
+              className="transition hover:text-white"
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                openAuthPanel("login", "/trips/new");
+              }}
+            >
+              Booking
+            </button>
+            {displayName ? (
+              <button
+                className="hidden max-w-36 truncate text-right text-white transition hover:text-teal-100 lg:inline"
+                type="button"
+                onClick={openProfilePanel}
+              >
+                {displayName}
+              </button>
+            ) : (
+              <>
+                <button className="hidden transition hover:text-white lg:inline" type="button" onClick={() => openAuthPanel("login", "/")}>
+                  Log in
+                </button>
+                <button className="hidden transition hover:text-white xl:inline" type="button" onClick={() => openAuthPanel("signup", "/")}>
+                  Sign up
+                </button>
+              </>
+            )}
+            <ArrowRight className="hidden h-4 w-4 sm:block" />
+          </nav>
+        </div>
+
+        {mobileNavOpen ? (
+          <nav className="border-t border-white/10 bg-black px-4 py-4 text-sm font-semibold uppercase text-white/72 shadow-2xl md:hidden">
+            <div className="mx-auto grid max-w-7xl gap-1">
+              <a className="px-2 py-3 transition hover:bg-white/10 hover:text-white" href="#home" onClick={() => setMobileNavOpen(false)}>
+                Menu
+              </a>
+              <a className="px-2 py-3 transition hover:bg-white/10 hover:text-white" href="#recommended" onClick={() => setMobileNavOpen(false)}>
+                Places
+              </a>
+              <a className="px-2 py-3 transition hover:bg-white/10 hover:text-white" href="#budget" onClick={() => setMobileNavOpen(false)}>
+                Budget
+              </a>
+              <a className="px-2 py-3 transition hover:bg-white/10 hover:text-white" href="#contact" onClick={() => setMobileNavOpen(false)}>
+                Contact
+              </a>
+              <button
+                className="px-2 py-3 text-left transition hover:bg-white/10 hover:text-white"
+                type="button"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  openAuthPanel("login", "/dashboard");
+                }}
+              >
+                Dashboard
+              </button>
+              <button
+                className="px-2 py-3 text-left transition hover:bg-white/10 hover:text-white"
+                type="button"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  openAuthPanel("login", "/trips/new");
+                }}
+              >
+                Booking
+              </button>
+              {displayName ? (
+                <button
+                  className="truncate px-2 py-3 text-left text-white transition hover:bg-white/10 hover:text-teal-100"
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    openProfilePanel();
+                  }}
+                >
+                  {displayName}
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="px-2 py-3 text-left transition hover:bg-white/10 hover:text-white"
+                    type="button"
+                    onClick={() => {
+                      setMobileNavOpen(false);
+                      openAuthPanel("login", "/");
+                    }}
+                  >
+                    Log in
+                  </button>
+                  <button
+                    className="px-2 py-3 text-left transition hover:bg-white/10 hover:text-white"
+                    type="button"
+                    onClick={() => {
+                      setMobileNavOpen(false);
+                      openAuthPanel("signup", "/");
+                    }}
+                  >
+                    Sign up
+                  </button>
+                </>
+              )}
+            </div>
+          </nav>
+        ) : null}
+      </header>
+
+      <section id="home" className="relative min-h-[calc(100vh-4rem)] scroll-mt-20 overflow-hidden bg-slate-950">
         <Image
           alt="Misty mountain valley"
           className="object-cover"
@@ -392,49 +541,13 @@ export default function Home() {
         <div className="absolute inset-0 bg-sky-950/25" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/12 via-slate-900/10 to-slate-950/80" />
 
-        <header className="relative z-10 mx-auto grid h-20 max-w-7xl grid-cols-[1fr_auto_1fr] border-b border-white/20 px-4 text-xs font-semibold uppercase tracking-normal text-white/85 sm:h-24 sm:px-8">
-          <div className="flex items-center gap-4">
-            <Menu className="h-4 w-4" />
-            <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/trips")}>
-              Upcoming trips
-            </button>
-            <button className="sm:hidden" type="button" aria-label="View upcoming trips" onClick={() => openAuthPanel("login", "/trips")}>
-              Trips
-            </button>
-          </div>
-          <button className="flex items-center text-xl font-semibold normal-case italic text-white sm:text-2xl" type="button" onClick={() => router.push("/")}>
-            Voyage
-          </button>
-          <nav className="flex items-center justify-end gap-4">
-            {displayName ? (
-              <button
-                className="max-w-36 truncate text-right text-white transition hover:text-teal-100 sm:max-w-52"
-                type="button"
-                onClick={openProfilePanel}
-              >
-                {displayName}
-              </button>
-            ) : (
-              <>
-                <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/")}>
-                  Log in
-                </button>
-                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
-                  Sign up
-                </button>
-                <ArrowRight className="hidden h-4 w-4 sm:block" />
-              </>
-            )}
-          </nav>
-        </header>
-
-        <section className="relative z-10 mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-center px-6 pb-44 pt-16 sm:min-h-[calc(100vh-6rem)] sm:px-8 lg:pb-40">
-          <div className="max-w-4xl">
+        <section className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-center px-6 pb-44 pt-16 sm:px-8 lg:pb-40">
+          <div className="max-w-4xl -translate-y-12 sm:-translate-y-16 lg:-translate-y-20">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur">
               <Mountain className="h-4 w-4" />
               Multi-city journeys, planned in minutes
             </p>
-            <h1 className="max-w-5xl font-serif text-6xl font-semibold italic leading-[0.95] tracking-normal text-white drop-shadow-sm sm:text-7xl lg:text-8xl">
+             <h1 className="max-w-5xl font-serif text-6xl font-semibold italic leading-[0.95] tracking-normal text-white drop-shadow-sm sm:text-7xl lg:text-8xl">
               Plan Beautiful Trips Across Every Stop
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/82 sm:text-lg">
@@ -609,36 +722,55 @@ export default function Home() {
         </form>
       </section>
 
-      <section className="relative z-10 border-y border-white/10 bg-[#181b20] px-4 py-20 sm:px-8">
+      <section id="recommended" className="relative z-10 scroll-mt-20 border-y border-white/10 bg-[#181b20] px-4 py-14 sm:px-8 sm:py-16">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 text-center">
+          <div className="mb-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-normal text-white/40">Recommended</p>
             <h2 className="mx-auto mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">
               Top Places, Already Planned.
             </h2>
           </div>
 
-          <div className="grid overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-[0.32fr_0.68fr]">
-            <div className="grid gap-px bg-white/10 lg:block">
+          <div className="grid overflow-hidden border border-white/10 bg-black/42 lg:grid-cols-[0.34fr_0.66fr]">
+            <div className="border-b border-white/10 bg-black/58 p-3 backdrop-blur-md lg:border-b-0 lg:border-r lg:p-4">
+              <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-semibold uppercase text-white/34">
+                <span>Places</span>
+                <span>{recommendedPlans.length} routes</span>
+              </div>
+              <div className="grid max-h-[330px] gap-2 overflow-y-auto pr-1 [scrollbar-color:rgba(255,255,255,0.28)_transparent] [scrollbar-width:thin] lg:max-h-[438px]">
               {recommendedPlans.map((plan, index) => (
                 <button
                   key={plan.country}
-                  className={`flex w-full items-center justify-between bg-[#1d2127] p-5 text-left transition hover:bg-[#242b34] ${
-                    selectedPlanIndex === index ? "text-white" : "text-white/55"
+                  className={`relative flex w-full items-center justify-between gap-4 border p-4 text-left transition ${
+                    selectedPlanIndex === index
+                      ? "border-white/16 bg-black/68 text-white shadow-[inset_3px_0_0_rgba(204,251,241,0.85)] backdrop-blur-md"
+                      : "border-white/10 bg-white/[0.04] text-white/58 hover:border-white/20 hover:bg-white/[0.08] hover:text-white/82"
                   }`}
                   type="button"
                   onClick={() => setSelectedPlanIndex(index)}
                 >
-                  <span>
-                    <span className="block text-xs font-semibold uppercase text-white/40">{plan.country}</span>
-                    <span className="mt-2 block font-serif text-2xl font-semibold">{plan.title}</span>
+                  <span className="min-w-0">
+                    <span className={`block text-[11px] font-semibold uppercase ${selectedPlanIndex === index ? "text-white/55" : "text-white/34"}`}>
+                      {plan.country}
+                    </span>
+                    <span className="mt-1.5 block truncate font-serif text-lg font-semibold sm:text-xl">{plan.title}</span>
+                    <span className={`mt-2 block truncate text-xs ${selectedPlanIndex === index ? "text-white/50" : "text-white/35"}`}>
+                      {plan.days} / {plan.route.length} stops
+                    </span>
                   </span>
-                  <span className="text-sm">{plan.budget}</span>
+                  <span
+                    className={`shrink-0 border px-2 py-1 text-xs font-semibold ${
+                      selectedPlanIndex === index ? "border-white/12 bg-white/12 text-white" : "border-white/10 text-white/48"
+                    }`}
+                  >
+                    {plan.budget}
+                  </span>
                 </button>
               ))}
+              </div>
             </div>
 
-            <article className="relative min-h-[620px] overflow-hidden">
+            <article className="relative min-h-[380px] overflow-hidden sm:min-h-[460px] lg:min-h-[520px]">
               <Image
                 key={selectedPlan.imageUrl}
                 alt={selectedPlan.title}
@@ -647,91 +779,131 @@ export default function Home() {
                 sizes="(min-width: 1024px) 68vw, 100vw"
                 src={selectedPlan.imageUrl}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/22 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                <div className="mb-4 flex flex-wrap gap-3 text-xs font-semibold uppercase text-white/58">
-                  <span>{selectedPlan.country}</span>
-                  <span>{selectedPlan.days}</span>
-                  <span>{selectedPlan.budget}</span>
-                </div>
-                <h3 className="max-w-2xl font-serif text-5xl font-semibold leading-none text-white sm:text-7xl">{selectedPlan.title}</h3>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {selectedPlan.route.map((stop) => (
-                    <span key={stop} className="border border-white/20 bg-white/12 px-4 py-2 text-sm text-white backdrop-blur">
-                      {stop}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-8 grid gap-px overflow-hidden bg-white/12 sm:grid-cols-4">
-                  {selectedPlan.places.map((place) => (
-                    <div key={place} className="bg-black/28 p-4">
-                      <p className="text-sm font-medium text-white">{place}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-black/8 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-black/30 p-4 backdrop-blur-[2px] sm:p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="font-serif text-2xl font-semibold leading-none text-white sm:text-4xl lg:text-5xl">
+                      {selectedPlan.title}
+                    </h3>
+                    <div className="mt-3">
+                      <p className="text-[10px] font-semibold uppercase text-white/38">Route</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {selectedPlan.route.map((stop) => (
+                          <span key={stop} className="bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90">
+                            {stop}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                  <button
+                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                    type="button"
+                    onClick={() => openAuthPanel("login", "/trips/new")}
+                  >
+                    Plan Trip
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  className="mt-8 inline-flex h-12 items-center justify-center gap-3 bg-white px-6 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100"
-                  type="button"
-                  onClick={() => openAuthPanel("login", "/trips/new")}
-                >
-                  Plan Trip
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
             </article>
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 bg-[#14171b] px-4 py-20 sm:px-8">
+      <section id="budget" className="relative z-10 scroll-mt-20 bg-[#14171b] px-4 py-20 sm:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-xs font-semibold uppercase text-white/40">Budget highlights</p>
             <h2 className="mt-3 font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">Choose By Budget.</h2>
           </div>
-          <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
-            {budgetHighlights.map((item) => (
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {budgetHighlights.map((item, index) => (
               <button
                 key={item.label}
-                className="bg-[#1d2127] p-7 text-left transition hover:bg-[#242b34]"
+                className="group flex min-h-72 flex-col justify-between border border-white/10 bg-[#1d2127] p-6 text-left transition hover:-translate-y-1 hover:border-white/25 hover:bg-[#242b34] sm:p-7"
                 type="button"
                 onClick={() => openAuthPanel("login", "/trips/new")}
               >
-                <p className="font-serif text-6xl font-semibold text-white">{item.value}</p>
-                <div className="mt-6 border-t border-white/10 pt-5">
-                  <p className="text-xl font-semibold text-white">{item.label}</p>
-                  <p className="mt-2 text-sm text-white/58">{item.detail}</p>
+                <div>
+                  <div className="mb-8 flex items-start justify-between gap-4">
+                    <p className="font-serif text-6xl font-semibold leading-none text-white">{item.value}</p>
+                    <span className="border border-white/10 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase text-white/42">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-semibold text-white">{item.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-white/58">{item.detail}</p>
                 </div>
+                <span className="mt-8 inline-flex items-center gap-2 border-t border-white/10 pt-5 text-xs font-semibold uppercase text-white/58 transition group-hover:text-white">
+                  Plan this budget
+                  <ArrowRight className="h-4 w-4" />
+                </span>
               </button>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="relative z-10 border-t border-white/10 bg-[#101216] px-4 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 text-sm text-white/58 sm:flex-row sm:items-center sm:justify-between">
-          <button className="w-fit font-serif text-2xl font-semibold italic text-white" type="button" onClick={() => router.push("/")}>
-            Voyage
-          </button>
-          <div className="flex flex-wrap gap-5">
-            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/trips")}>
-              Upcoming trips
+      <footer id="contact" className="relative z-10 scroll-mt-20 border-t border-white/10 bg-black px-4 py-14 sm:px-8 sm:py-16">
+        <div className="mx-auto grid max-w-7xl gap-10 text-sm font-semibold uppercase text-white/62 md:grid-cols-[1.2fr_1fr_1fr]">
+          <div>
+            <a className="font-serif text-4xl font-semibold italic normal-case text-white transition hover:text-teal-100" href="#home">
+              Voyage
+            </a>
+            <p className="mt-4 max-w-sm text-sm font-normal normal-case leading-6 text-white/50">
+              Plan multi-city journeys with routes, dates, activities, budgets, and shareable itineraries.
+            </p>
+          </div>
+
+          <nav className="grid gap-4">
+            <p className="text-xs text-white/35">Home sections</p>
+            <a className="transition hover:text-white" href="#home">
+              Menu
+            </a>
+            <a className="transition hover:text-white" href="#recommended">
+              Places
+            </a>
+            <a className="transition hover:text-white" href="#budget">
+              Budget
+            </a>
+            <a className="transition hover:text-white" href="#contact">
+              Contact
+            </a>
+          </nav>
+
+          <nav className="grid gap-4">
+            <p className="text-xs text-white/35">Pages</p>
+            <button className="w-fit text-left transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
+              Dashboard
+            </button>
+            <button className="w-fit text-left transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/trips/new")}>
+              Booking
             </button>
             {displayName ? (
-              <button className="max-w-52 truncate text-white transition hover:text-teal-100" type="button" onClick={openProfilePanel}>
+              <button className="w-fit max-w-52 truncate text-left text-white transition hover:text-teal-100" type="button" onClick={openProfilePanel}>
                 {displayName}
               </button>
             ) : (
               <>
-                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/")}>
+                <button className="w-fit text-left transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/")}>
                   Log in
                 </button>
-                <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
+                <button className="w-fit text-left transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
                   Sign up
                 </button>
               </>
             )}
-          </div>
+          </nav>
+        </div>
+
+        <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-4 border-t border-white/10 pt-6 text-xs font-semibold uppercase text-white/35 sm:flex-row sm:items-center sm:justify-between">
+          <span>Voyage trip planner</span>
+          <button className="inline-flex w-fit items-center gap-2 text-white/70 transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/trips/new")}>
+            Plan trip
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </footer>
 
