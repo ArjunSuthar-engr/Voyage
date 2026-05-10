@@ -561,14 +561,14 @@ export default function Home() {
         <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
           <nav className="flex min-w-0 items-center gap-4">
             <button
-              className="hidden py-2 transition hover:text-white sm:inline"
+              className="hidden cursor-pointer py-2 transition hover:text-white sm:inline"
               type="button"
               onClick={() => openAuthPanel("login", "/trips")}
             >
               Upcoming trips
             </button>
             <button
-              className="py-2 transition hover:text-white sm:hidden"
+              className="cursor-pointer py-2 transition hover:text-white sm:hidden"
               type="button"
               aria-label="View upcoming trips"
               onClick={() => openAuthPanel("login", "/trips")}
@@ -577,7 +577,7 @@ export default function Home() {
             </button>
           </nav>
           <button
-            className="justify-self-center font-serif text-2xl font-semibold italic normal-case text-white"
+            className="cursor-pointer justify-self-center font-serif text-2xl font-semibold italic normal-case text-white"
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
@@ -586,7 +586,7 @@ export default function Home() {
           <nav className="flex items-center justify-end gap-3">
             {displayName ? (
               <button
-                className="inline-flex max-w-44 items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
+                className="inline-flex max-w-44 cursor-pointer items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
                 type="button"
                 onClick={openProfilePanel}
               >
@@ -600,14 +600,14 @@ export default function Home() {
             ) : (
               <>
                 <button
-                  className="hidden transition hover:text-white sm:inline"
+                  className="hidden cursor-pointer transition hover:text-white sm:inline"
                   type="button"
                   onClick={() => openAuthPanel("login", "/")}
                 >
                   Log in
                 </button>
                 <button
-                  className="transition hover:text-white"
+                  className="cursor-pointer transition hover:text-white"
                   type="button"
                   onClick={() => openAuthPanel("signup", "/")}
                 >
@@ -633,20 +633,20 @@ export default function Home() {
 
         <header className="relative z-10 mx-auto grid h-18 max-w-7xl grid-cols-[1fr_auto_1fr] items-center border-b border-white/15 px-6 text-sm font-semibold uppercase tracking-[0.08em] text-white/82 sm:h-20 sm:px-8">
           <div className="flex items-center">
-            <button className="hidden py-2 transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/trips")}>
+            <button className="hidden cursor-pointer py-2 transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/trips")}>
               Upcoming trips
             </button>
-            <button className="py-2 transition hover:text-white sm:hidden" type="button" aria-label="View upcoming trips" onClick={() => openAuthPanel("login", "/trips")}>
+            <button className="cursor-pointer py-2 transition hover:text-white sm:hidden" type="button" aria-label="View upcoming trips" onClick={() => openAuthPanel("login", "/trips")}>
               Trips
             </button>
           </div>
-          <button className="justify-self-center font-serif text-3xl font-semibold italic normal-case tracking-normal text-white drop-shadow-sm transition hover:text-teal-100 sm:text-[2rem]" type="button">
+          <button className="cursor-pointer justify-self-center font-serif text-3xl font-semibold italic normal-case tracking-normal text-white drop-shadow-sm transition hover:text-teal-100 sm:text-[2rem]" type="button">
             Voyage
           </button>
           <nav className="flex items-center justify-end gap-5 sm:gap-6">
             {displayName ? (
               <button
-                className="inline-flex max-w-44 items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
+                className="inline-flex max-w-44 cursor-pointer items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
                 type="button"
                 onClick={openProfilePanel}
               >
@@ -659,10 +659,10 @@ export default function Home() {
               </button>
             ) : (
               <>
-                <button className="hidden py-2 transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/")}>
+                <button className="hidden cursor-pointer py-2 transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/")}>
                   Log in
                 </button>
-                <button className="py-2 transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
+                <button className="cursor-pointer py-2 transition hover:text-white" type="button" onClick={() => openAuthPanel("signup", "/")}>
                   Sign up
                 </button>
                 <ArrowRight className="hidden h-3.5 w-3.5 text-white/70 sm:block" />
