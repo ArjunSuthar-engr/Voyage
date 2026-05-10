@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "isde-congress.net",
       },
+      {
+        protocol: "https",
+        hostname: "images.travelandleisureasia.com",
+      },
     ],
   },
 };

@@ -27,7 +27,7 @@ const cityData: Record<string, {
     description: "Step back in time in the cultural heart of Japan, home to thousands of classical Buddhist temples and Shinto shrines.",
     photos: [
       "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=800&q=80",
-      "https://isde-congress.net/wp-content/uploads/2025/11/AdobeStock_160305333-scaled.jpg",
+      "https://images.travelandleisureasia.com/wp-content/uploads/sites/2/2019/01/10105253/Kyoto-Japan-Hero-Image-1600x900.jpg",
       "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80"
     ],
     destinations: ["Fushimi Inari Shrine", "Kinkaku-ji (Golden Pavilion)", "Arashiyama Bamboo Grove", "Gion District"],
