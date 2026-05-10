@@ -35,6 +35,8 @@ const recommendedPlans = [
     country: "Japan",
     title: "Tokyo To Kyoto",
     days: "7 days",
+    budgetEstimate: "From ₹95k",
+    budgetNote: "per person",
     budget: "₹₹",
     imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1500&q=85",
     route: ["Tokyo", "Hakone", "Kyoto", "Osaka"],
@@ -44,6 +46,8 @@ const recommendedPlans = [
     country: "Portugal",
     title: "Lisbon Coast",
     days: "5 days",
+    budgetEstimate: "From ₹90k",
+    budgetNote: "per person",
     budget: "₹",
     imageUrl: "https://images.unsplash.com/photo-1501927023255-9063be98970c?auto=format&fit=crop&w=1500&q=85",
     route: ["Lisbon", "Sintra", "Cascais"],
@@ -53,6 +57,8 @@ const recommendedPlans = [
     country: "Spain",
     title: "Barcelona City Break",
     days: "4 days",
+    budgetEstimate: "From ₹65k",
+    budgetNote: "per person",
     budget: "₹₹",
     imageUrl: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1500&q=85",
     route: ["Barcelona", "Montserrat", "Sitges"],
@@ -62,6 +68,8 @@ const recommendedPlans = [
     country: "India",
     title: "Golden Triangle",
     days: "6 days",
+    budgetEstimate: "From ₹24k",
+    budgetNote: "per person",
     budget: "₹₹",
     imageUrl: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1500&q=85",
     route: ["Delhi", "Agra", "Jaipur"],
@@ -71,6 +79,8 @@ const recommendedPlans = [
     country: "Europe",
     title: "Alpine Rail Loop",
     days: "8 days",
+    budgetEstimate: "From ₹1.9L",
+    budgetNote: "per person",
     budget: "₹₹₹",
     imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1500&q=85",
     route: ["Zurich", "Lucerne", "Interlaken", "Milan"],
@@ -80,6 +90,8 @@ const recommendedPlans = [
     country: "USA",
     title: "New York Weekend",
     days: "4 days",
+    budgetEstimate: "From ₹1.4L",
+    budgetNote: "per person",
     budget: "₹₹₹",
     imageUrl: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1500&q=85",
     route: ["Manhattan", "Brooklyn", "Queens"],
@@ -609,11 +621,12 @@ export default function Home() {
                     </span>
                   </span>
                   <span
-                    className={`shrink-0 border px-2 py-1 text-xs font-semibold ${
+                    className={`shrink-0 border px-3 py-2 text-right text-xs font-semibold leading-tight ${
                       selectedPlanIndex === index ? "border-white/12 bg-white/12 text-white" : "border-white/10 text-white/48"
                     }`}
                   >
-                    {plan.budget}
+                    <span className="block">{plan.budgetEstimate}</span>
+                    <span className="mt-0.5 block text-[10px] font-medium uppercase text-white/42">{plan.budgetNote}</span>
                   </span>
                 </button>
               ))}
@@ -647,14 +660,21 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <button
-                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
-                    type="button"
-                    onClick={() => openAuthPanel("login", "/trips/new")}
-                  >
-                    Plan Trip
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:items-end">
+                    <div className="border border-white/12 bg-black/32 px-4 py-2 text-left sm:text-right">
+                      <p className="text-[10px] font-semibold uppercase text-white/42">Estimated budget</p>
+                      <p className="mt-1 text-lg font-semibold text-white">{selectedPlan.budgetEstimate}</p>
+                      <p className="text-[11px] font-medium uppercase text-white/45">{selectedPlan.budgetNote}</p>
+                    </div>
+                    <button
+                      className="inline-flex h-11 w-full items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                      type="button"
+                      onClick={() => openAuthPanel("login", "/trips/new")}
+                    >
+                      Plan Trip
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>

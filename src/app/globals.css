@@ -26,10 +26,6 @@ select {
   letter-spacing: 0;
 }
 
-::selection {
-  background: #14b8a6;
-  color: #0f172a;
-}
 
 .minimal-scrollbar {
   scrollbar-color: rgb(148 163 184 / 0.45) transparent;
