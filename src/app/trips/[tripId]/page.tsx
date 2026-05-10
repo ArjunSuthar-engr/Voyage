@@ -161,7 +161,7 @@ export default function TripDetailPage() {
 
   if (loading) {
     return (
-      <AppShell signOutMode="user-menu">
+      <AppShell>
         <div className="h-80 animate-pulse rounded-none bg-white/12" />
       </AppShell>
     );
@@ -169,7 +169,7 @@ export default function TripDetailPage() {
 
   if (!trip) {
     return (
-      <AppShell signOutMode="user-menu">
+      <AppShell>
         <Card>
           <CardContent className="p-8 text-sm text-white/50">Trip unavailable.</CardContent>
         </Card>
@@ -178,7 +178,7 @@ export default function TripDetailPage() {
   }
 
   return (
-    <AppShell signOutMode="user-menu">
+    <AppShell>
       <div className="space-y-6">
         <PageHero
           eyebrow={`${trip.stops.length} stops · ${dayCount(trip.start_date, trip.end_date)} days · ${trip.is_public ? "Public" : "Private"}`}

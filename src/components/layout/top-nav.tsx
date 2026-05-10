@@ -10,13 +10,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { getUserDisplayName } from "@/lib/user";
 
-export type TopNavSignOutMode = "icon" | "user-menu";
-
-type TopNavProps = {
-  signOutMode?: TopNavSignOutMode;
-};
-
-export function TopNav({ signOutMode = "icon" }: TopNavProps) {
+export function TopNav() {
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -63,34 +57,28 @@ export function TopNav({ signOutMode = "icon" }: TopNavProps) {
           Voyage
         </Link>
         <nav className="flex items-center justify-end gap-2 sm:gap-3">
-          {signOutMode === "user-menu" ? (
-            <div ref={userMenuRef} className="relative">
-              <button
-                className="flex max-w-36 items-center gap-2 truncate text-right text-xs font-semibold uppercase text-white/55 transition hover:text-white sm:max-w-44"
-                type="button"
-                onClick={() => setUserMenuOpen((open) => !open)}
-              >
-                <span className="truncate">{displayName || "Account"}</span>
-                <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition ${userMenuOpen ? "rotate-180" : ""}`} />
-              </button>
-              {userMenuOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-4 w-44 border border-white/15 bg-[#101216] p-1 shadow-2xl">
-                  <button
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold uppercase text-white/72 transition hover:bg-white/10 hover:text-white"
-                    type="button"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : displayName ? (
-            <span className="hidden max-w-44 truncate text-right text-xs font-semibold uppercase text-white/55 sm:inline">
-              {displayName}
-            </span>
-          ) : null}
+          <div ref={userMenuRef} className="relative">
+            <button
+              className="flex max-w-36 items-center gap-2 truncate text-right text-xs font-semibold uppercase text-white/55 transition hover:text-white sm:max-w-44"
+              type="button"
+              onClick={() => setUserMenuOpen((open) => !open)}
+            >
+              <span className="truncate">{displayName || "Account"}</span>
+              <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition ${userMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {userMenuOpen ? (
+              <div className="absolute right-0 top-full z-50 mt-4 w-44 border border-white/15 bg-[#101216] p-1 shadow-2xl">
+                <button
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold uppercase text-white/72 transition hover:bg-white/10 hover:text-white"
+                  type="button"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            ) : null}
+          </div>
           <Button variant="secondary" className="hidden sm:inline-flex" onClick={() => router.push("/trips/new")}>
             <Plus className="h-4 w-4" />
             New trip
@@ -98,11 +86,6 @@ export function TopNav({ signOutMode = "icon" }: TopNavProps) {
           <Button aria-label="Create trip" size="icon" variant="secondary" className="sm:hidden" onClick={() => router.push("/trips/new")}>
             <Plus className="h-4 w-4" />
           </Button>
-          {signOutMode === "icon" ? (
-            <Button aria-label="Sign out" size="icon" variant="ghost" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          ) : null}
         </nav>
       </div>
     </header>
