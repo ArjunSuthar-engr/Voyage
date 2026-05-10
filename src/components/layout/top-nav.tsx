@@ -2,17 +2,25 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, LogOut, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { getUserDisplayName } from "@/lib/user";
 
-export function TopNav() {
+export type TopNavSignOutMode = "icon" | "user-menu";
+
+type TopNavProps = {
+  signOutMode?: TopNavSignOutMode;
+};
+
+export function TopNav({ signOutMode = "icon" }: TopNavProps) {
   const router = useRouter();
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -23,7 +31,21 @@ export function TopNav() {
     loadUser();
   }, []);
 
+  useEffect(() => {
+    if (!userMenuOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && userMenuRef.current?.contains(target)) return;
+      setUserMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [userMenuOpen]);
+
   async function handleSignOut() {
+    setUserMenuOpen(false);
     await supabase.auth.signOut();
     toast.success("Signed out");
     router.replace("/");
@@ -41,7 +63,30 @@ export function TopNav() {
           Voyage
         </Link>
         <nav className="flex items-center justify-end gap-2 sm:gap-3">
-          {displayName ? (
+          {signOutMode === "user-menu" ? (
+            <div ref={userMenuRef} className="relative">
+              <button
+                className="flex max-w-36 items-center gap-2 truncate text-right text-xs font-semibold uppercase text-white/55 transition hover:text-white sm:max-w-44"
+                type="button"
+                onClick={() => setUserMenuOpen((open) => !open)}
+              >
+                <span className="truncate">{displayName || "Account"}</span>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition ${userMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+              {userMenuOpen ? (
+                <div className="absolute right-0 top-full z-50 mt-4 w-44 border border-white/15 bg-[#101216] p-1 shadow-2xl">
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold uppercase text-white/72 transition hover:bg-white/10 hover:text-white"
+                    type="button"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : displayName ? (
             <span className="hidden max-w-44 truncate text-right text-xs font-semibold uppercase text-white/55 sm:inline">
               {displayName}
             </span>
@@ -53,9 +98,11 @@ export function TopNav() {
           <Button aria-label="Create trip" size="icon" variant="secondary" className="sm:hidden" onClick={() => router.push("/trips/new")}>
             <Plus className="h-4 w-4" />
           </Button>
-          <Button aria-label="Sign out" size="icon" variant="ghost" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {signOutMode === "icon" ? (
+            <Button aria-label="Sign out" size="icon" variant="ghost" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          ) : null}
         </nav>
       </div>
     </header>
