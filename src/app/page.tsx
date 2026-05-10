@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays, toInputDate } from "@/lib/dates";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { createTrip } from "@/lib/trips";
 import { getUserDisplayName } from "@/lib/user";
 
 const demoEmail = "demo@voyage.test";
@@ -35,6 +36,7 @@ const recommendedPlans = [
     country: "Japan",
     title: "Tokyo To Kyoto",
     days: "7 days",
+    budgetAmount: 95000,
     budgetEstimate: "From ₹95k",
     budgetNote: "per person",
     budget: "₹₹",
@@ -46,6 +48,7 @@ const recommendedPlans = [
     country: "Portugal",
     title: "Lisbon Coast",
     days: "5 days",
+    budgetAmount: 90000,
     budgetEstimate: "From ₹90k",
     budgetNote: "per person",
     budget: "₹",
@@ -57,6 +60,7 @@ const recommendedPlans = [
     country: "Spain",
     title: "Barcelona City Break",
     days: "4 days",
+    budgetAmount: 65000,
     budgetEstimate: "From ₹65k",
     budgetNote: "per person",
     budget: "₹₹",
@@ -68,6 +72,7 @@ const recommendedPlans = [
     country: "India",
     title: "Golden Triangle",
     days: "6 days",
+    budgetAmount: 24000,
     budgetEstimate: "From ₹24k",
     budgetNote: "per person",
     budget: "₹₹",
@@ -79,6 +84,7 @@ const recommendedPlans = [
     country: "Europe",
     title: "Alpine Rail Loop",
     days: "8 days",
+    budgetAmount: 190000,
     budgetEstimate: "From ₹1.9L",
     budgetNote: "per person",
     budget: "₹₹₹",
@@ -90,6 +96,7 @@ const recommendedPlans = [
     country: "USA",
     title: "New York Weekend",
     days: "4 days",
+    budgetAmount: 140000,
     budgetEstimate: "From ₹1.4L",
     budgetNote: "per person",
     budget: "₹₹₹",
@@ -154,6 +161,7 @@ export default function Home() {
   const [travelEnd, setTravelEnd] = useState("");
   const [tripStyle, setTripStyle] = useState("Food, stays, transit, activities");
   const [loading, setLoading] = useState(false);
+  const [addingPlan, setAddingPlan] = useState(false);
   const [postAuthPath, setPostAuthPath] = useState("/");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
@@ -298,6 +306,102 @@ export default function Home() {
     }
 
     await openAuthPanel("login", buildTripPlannerPath());
+  }
+
+  async function addRecommendedPlanToTrips() {
+    if (!selectedPlan) return;
+
+    if (isSupabaseConfigured) {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        setMode("login");
+        setPostAuthPath("/");
+        setAuthOpen(true);
+        return;
+      }
+    }
+
+    const start = addDays(new Date(), 21);
+    const dayCount = Number.parseInt(selectedPlan.days, 10) || Math.max(selectedPlan.route.length, 4);
+    const tripStart = toInputDate(start);
+    const tripEnd = toInputDate(addDays(start, Math.max(dayCount - 1, selectedPlan.route.length - 1)));
+
+    setAddingPlan(true);
+    try {
+      const trip = await createTrip({
+        name: selectedPlan.title,
+        description: `Pre-planned ${selectedPlan.country} itinerary with ${selectedPlan.route.join(", ")} plus suggested places, dates, and budget.`,
+        start_date: tripStart,
+        end_date: tripEnd,
+        budget_amount: selectedPlan.budgetAmount,
+        currency: "INR",
+      });
+
+      const stopCount = selectedPlan.route.length;
+      const stayBudget = Math.round(selectedPlan.budgetAmount * 0.42);
+      const transportBudget = Math.round(selectedPlan.budgetAmount * 0.23);
+      const activityBudget = Math.round(selectedPlan.budgetAmount * 0.16);
+      const stops = selectedPlan.route.map((city, index) => {
+        const startOffset = Math.floor((index * dayCount) / stopCount);
+        const endOffset = Math.max(startOffset, Math.floor(((index + 1) * dayCount) / stopCount) - 1);
+
+        return {
+          trip_id: trip.id,
+          city,
+          country: selectedPlan.country === "Europe" ? (city === "Milan" ? "Italy" : "Switzerland") : selectedPlan.country,
+          start_date: toInputDate(addDays(start, startOffset)),
+          end_date: toInputDate(addDays(start, endOffset)),
+          stay_cost: Math.round(stayBudget / stopCount),
+          transport_cost: Math.round(transportBudget / stopCount),
+          notes: `Pre-planned stop for ${selectedPlan.title}.`,
+          sort_order: index + 1,
+        };
+      });
+
+      const { data: createdStops, error: stopError } = await supabase
+        .from("stops")
+        .insert(stops)
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (stopError) throw stopError;
+
+      const activities = (createdStops ?? []).flatMap((stop, index) => {
+        const place = selectedPlan.places[index] ?? selectedPlan.places[index % selectedPlan.places.length] ?? stop.city;
+        return [
+          {
+            trip_id: trip.id,
+            stop_id: stop.id,
+            activity_date: stop.start_date,
+            title: `${place} sightseeing block`,
+            category: "activity",
+            start_time: "10:00",
+            duration_minutes: 180,
+            cost: Math.round(activityBudget / Math.max(selectedPlan.route.length, 1)),
+            notes: `Suggested highlight for ${stop.city}.`,
+          },
+          {
+            trip_id: trip.id,
+            stop_id: stop.id,
+            activity_date: stop.end_date,
+            title: `${stop.city} local food walk`,
+            category: "food",
+            start_time: "18:00",
+            duration_minutes: 120,
+            cost: Math.round((selectedPlan.budgetAmount * 0.09) / Math.max(selectedPlan.route.length, 1)),
+            notes: "Flexible evening plan based on nearby neighborhoods.",
+          },
+        ];
+      });
+
+      const { error: activityError } = await supabase.from("activities").insert(activities);
+      if (activityError) throw activityError;
+
+      router.push(`/trips/${trip.id}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not add this itinerary");
+    } finally {
+      setAddingPlan(false);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -667,9 +771,9 @@ export default function Home() {
       <section id="recommended" className="relative z-10 scroll-mt-20 border-y border-white/10 bg-[#181b20] px-4 py-14 sm:px-8 sm:py-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-normal text-white/40">Recommended</p>
+            <p className="text-xs font-semibold uppercase tracking-normal text-white/40">Pre-planned picks</p>
             <h2 className="mx-auto mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">
-              Top Places, Already Planned.
+              Recommended Destinations, Ready To Add.
             </h2>
           </div>
 
@@ -748,10 +852,11 @@ export default function Home() {
                     </div>
                     <button
                       className="inline-flex h-11 w-full items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                      disabled={addingPlan}
                       type="button"
-                      onClick={() => openAuthPanel("login", "/trips/new")}
+                      onClick={addRecommendedPlanToTrips}
                     >
-                      Plan Trip
+                      {addingPlan ? "Adding..." : "Add to my trips"}
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
