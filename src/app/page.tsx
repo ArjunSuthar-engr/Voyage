@@ -151,7 +151,6 @@ export default function Home() {
         if (error) throw error;
 
         setDisplayName(getUserDisplayName(data.user));
-        toast.success("Name updated");
         setAuthOpen(false);
         return;
       }
@@ -166,7 +165,6 @@ export default function Home() {
         if (profileError) throw profileError;
         setDisplayName(getUserDisplayName(profileData.user ?? data.user));
 
-        toast.success("Welcome back");
         setAuthOpen(false);
         if (postAuthPath !== "/") {
           router.push(postAuthPath);
@@ -183,13 +181,11 @@ export default function Home() {
 
       if (data.session) {
         setDisplayName(getUserDisplayName(data.user));
-        toast.success("Account created");
         setAuthOpen(false);
         if (postAuthPath !== "/") {
           router.push(postAuthPath);
         }
       } else {
-        toast.success("Account created. Check email confirmation if enabled.");
         setMode("login");
       }
     } catch (error) {
@@ -205,7 +201,6 @@ export default function Home() {
     setNameEdited(true);
     setEmail(demoEmail);
     setPassword(demoPassword);
-    toast.success("Demo credentials filled");
   }
 
   async function resetPassword() {
@@ -218,7 +213,6 @@ export default function Home() {
       process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? `${window.location.origin}/` : undefined);
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) toast.error(error.message);
-    else toast.success("Password reset email sent");
   }
 
   return (
