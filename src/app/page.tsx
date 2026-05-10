@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, Mail, MapPin, Mountain, Users, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EnvCallout } from "@/components/setup/env-callout";
@@ -134,6 +134,8 @@ function getAvatarUrl(style: string, seed: string) {
 export default function Home() {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
+  const [navVisible, setNavVisible] = useState(false);
+  const lastScrollY = useRef(0);
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [nameEdited, setNameEdited] = useState(false);
@@ -155,6 +157,24 @@ export default function Home() {
   const [postAuthPath, setPostAuthPath] = useState("/");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
+
+  // Smart sticky nav: appear after hero, hide on scroll-down, show on scroll-up
+  useEffect(() => {
+    const HERO_THRESHOLD = 80;
+    function handleScroll() {
+      const currentY = window.scrollY;
+      if (currentY < HERO_THRESHOLD) {
+        setNavVisible(false);
+      } else if (currentY < lastScrollY.current) {
+        setNavVisible(true);
+      } else if (currentY > lastScrollY.current + 4) {
+        setNavVisible(false);
+      }
+      lastScrollY.current = currentY;
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const displayAvatarStyle = savedProfile?.avatarStyle ?? avatarStyle;
   const displayAvatarSeed = savedProfile?.avatarSeed ?? avatarSeed;
   const profileDirty =
@@ -427,6 +447,66 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#16191d] text-white">
+      {/* Smart sticky nav — hidden in hero, appears on scroll-up */}
+      <header
+        aria-hidden={!navVisible}
+        className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#101216]/95 backdrop-blur transition-transform duration-300 ${
+          navVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
+          <nav className="flex min-w-0 items-center gap-4">
+            <button
+              className="transition hover:text-white"
+              type="button"
+              onClick={() => openAuthPanel("login", "/trips")}
+            >
+              Trips
+            </button>
+          </nav>
+          <button
+            className="justify-self-center font-serif text-2xl font-semibold italic normal-case text-white"
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          >
+            Voyage
+          </button>
+          <nav className="flex items-center justify-end gap-3">
+            {displayName ? (
+              <button
+                className="flex max-w-36 items-center gap-2 truncate text-right text-xs font-semibold uppercase text-white/55 transition hover:text-white sm:max-w-44"
+                type="button"
+                onClick={openProfilePanel}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-7 w-7 shrink-0 rounded-full border border-white/25 bg-white/90 bg-cover bg-center"
+                  style={{ backgroundImage: `url("${getAvatarUrl(displayAvatarStyle, displayAvatarSeed)}")` }}
+                />
+                <span className="truncate">{displayName}</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  className="hidden transition hover:text-white sm:inline"
+                  type="button"
+                  onClick={() => openAuthPanel("login", "/")}
+                >
+                  Log in
+                </button>
+                <button
+                  className="transition hover:text-white"
+                  type="button"
+                  onClick={() => openAuthPanel("signup", "/")}
+                >
+                  Sign up
+                </button>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
       <section id="home" className="relative min-h-screen scroll-mt-20 overflow-hidden bg-slate-950">
         <Image
           alt="Misty mountain valley"

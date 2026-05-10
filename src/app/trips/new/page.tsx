@@ -1,38 +1,103 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ArrowRight, CalendarDays, IndianRupee, MapPin, PencilLine, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { PageHero } from "@/components/layout/page-hero";
 import { EnvCallout } from "@/components/setup/env-callout";
-import { TripForm } from "@/components/trips/trip-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { addDays, toInputDate } from "@/lib/dates";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { createTrip } from "@/lib/trips";
 import type { TripInput } from "@/lib/types";
 
+const plannerStyleOptions = [
+  "Food, stays, transit, activities",
+  "Culture, museums, neighborhoods",
+  "Budget saver route",
+  "Premium stays and private transfers",
+  "Family friendly pacing",
+];
+
+const destinationOptions = [
+  {
+    title: "Tokyo To Kyoto",
+    budgetAmount: 95000,
+    budgetLabel: "From ₹95k",
+    description: "Food, stays, transit, and temple days across Tokyo, Hakone, Kyoto, and Osaka.",
+  },
+  {
+    title: "Lisbon Coast",
+    budgetAmount: 90000,
+    budgetLabel: "From ₹90k",
+    description: "Neighborhood walks, Sintra day trips, seafood meals, and coastal transfers.",
+  },
+  {
+    title: "Barcelona City Break",
+    budgetAmount: 65000,
+    budgetLabel: "From ₹65k",
+    description: "Architecture, food markets, beach time, museums, and a Montserrat day trip.",
+  },
+  {
+    title: "Golden Triangle",
+    budgetAmount: 24000,
+    budgetLabel: "From ₹24k",
+    description: "Delhi, Agra, and Jaipur with monument entries, local food, and intercity transport.",
+  },
+  {
+    title: "Alpine Rail Loop",
+    budgetAmount: 190000,
+    budgetLabel: "From ₹1.9L",
+    description: "Zurich, Lucerne, Interlaken, and Milan with rail travel and alpine sightseeing.",
+  },
+  {
+    title: "New York Weekend",
+    budgetAmount: 140000,
+    budgetLabel: "From ₹1.4L",
+    description: "Manhattan, Brooklyn, and Queens with museums, food stops, subway rides, and skyline views.",
+  },
+];
+
 export default function NewTripPage() {
   const router = useRouter();
+  const defaultStart = toInputDate(addDays(new Date(), 21));
+  const defaultEnd = toInputDate(addDays(new Date(), 28));
   const [ready, setReady] = useState(false);
-  const [initialTripValues, setInitialTripValues] = useState<Partial<TripInput>>({});
+  const [destination, setDestination] = useState(destinationOptions[0]?.title ?? "");
+  const [startDate, setStartDate] = useState(defaultStart);
+  const [endDate, setEndDate] = useState(defaultEnd);
+  const [tripStyle, setTripStyle] = useState(plannerStyleOptions[0]);
+  const [description, setDescription] = useState(destinationOptions[0]?.description ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const selectedDestination = useMemo(
+    () => destinationOptions.find((option) => option.title === destination) ?? destinationOptions[0],
+    [destination],
+  );
 
   useEffect(() => {
     function readInitialTripValues() {
       const params = new URLSearchParams(window.location.search);
-      const destination = params.get("destination")?.trim() ?? "";
-      const style = params.get("style")?.trim() ?? "";
-      const startDate = params.get("start") ?? undefined;
-      const endDate = params.get("end") ?? undefined;
+      const requestedDestination = params.get("destination")?.trim();
+      const requestedStyle = params.get("style")?.trim();
+      const requestedStart = params.get("start") ?? "";
+      const requestedEnd = params.get("end") ?? "";
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      const matchingDestination = destinationOptions.find((option) => option.title === requestedDestination);
 
-      setInitialTripValues({
-        name: destination ? `${destination} Trip` : undefined,
-        description: destination && style ? `${style} route for ${destination}.` : undefined,
-        start_date: startDate && datePattern.test(startDate) ? startDate : undefined,
-        end_date: endDate && datePattern.test(endDate) ? endDate : undefined,
-      });
+      if (matchingDestination) {
+        setDestination(matchingDestination.title);
+        setDescription(matchingDestination.description);
+      }
+
+      if (requestedStyle && plannerStyleOptions.includes(requestedStyle)) {
+        setTripStyle(requestedStyle);
+      }
+
+      if (datePattern.test(requestedStart)) setStartDate(requestedStart);
+      if (datePattern.test(requestedEnd)) setEndDate(requestedEnd);
     }
 
     async function guard() {
@@ -42,50 +107,178 @@ export default function NewTripPage() {
         setReady(true);
         return;
       }
+
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
         const currentPath = `/trips/new${window.location.search}`;
         router.replace(`/?auth=login&next=${encodeURIComponent(currentPath)}`);
+      } else {
+        setReady(true);
       }
-      else setReady(true);
     }
 
     guard();
   }, [router]);
 
-  async function handleCreateTrip(input: TripInput) {
+  function handleDestinationChange(value: string) {
+    const option = destinationOptions.find((destinationOption) => destinationOption.title === value);
+    setDestination(value);
+    if (option) setDescription(option.description);
+  }
+
+  async function handleCreateTrip(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (endDate < startDate) {
+      toast.error("End date must be after start date");
+      return;
+    }
+
+    if (!selectedDestination) {
+      toast.error("Choose a destination");
+      return;
+    }
+
+    const input: TripInput = {
+      name: destination,
+      description: description.trim() || `${tripStyle} route for ${destination}.`,
+      start_date: startDate,
+      end_date: endDate,
+      budget_amount: selectedDestination.budgetAmount,
+      currency: "INR",
+    };
+
+    setSaving(true);
     try {
       const trip = await createTrip(input);
       toast.success("Trip created. Add your first stop.");
       router.push(`/trips/${trip.id}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create trip");
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-5">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {!isSupabaseConfigured ? <EnvCallout /> : null}
-        <PageHero
-          eyebrow="New itinerary"
-          imageUrl="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85"
-          title="Start with the shape of the trip"
-          description="Name the journey, set the dates, and define the budget. Cities and activities come next."
-        />
-        <Card className="mx-auto max-w-3xl">
-          <CardHeader>
-            <CardTitle>Plan a new trip</CardTitle>
-            <p className="text-sm text-white/50">Start with the trip shell. Cities and activities come next.</p>
-          </CardHeader>
-          <CardContent>
-            {ready ? (
-              <TripForm initialValues={initialTripValues} submitLabel="Create trip" onSubmit={handleCreateTrip} />
-            ) : (
-              <p className="text-sm text-white/50">Loading...</p>
-            )}
-          </CardContent>
-        </Card>
+
+        <section className="mb-7">
+          <p className="text-xs font-semibold uppercase text-white/42">New itinerary</p>
+          <h1 className="mt-2 font-serif text-4xl font-semibold italic leading-none text-white sm:text-6xl">Plan a new trip</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/58">
+            Choose the route, dates, style, and a short description. Stops and activities come next.
+          </p>
+        </section>
+
+        <form className="border border-white/12 bg-slate-950/58 p-4 shadow-2xl backdrop-blur-md sm:p-5" onSubmit={handleCreateTrip}>
+          {ready ? (
+            <div className="grid gap-5">
+              <div className="grid gap-4 lg:grid-cols-[1.05fr_1.1fr_1.25fr_0.8fr_auto] lg:items-end">
+                <div className="border-b border-white/20 pb-3">
+                  <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55" htmlFor="trip-destination">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Destination
+                  </label>
+                  <select
+                    id="trip-destination"
+                    className="w-full cursor-pointer bg-transparent pr-8 text-sm font-medium text-white outline-none [color-scheme:dark]"
+                    required
+                    value={destination}
+                    onChange={(event) => handleDestinationChange(event.target.value)}
+                  >
+                    {destinationOptions.map((option) => (
+                      <option key={option.title} className="bg-slate-950 text-white" value={option.title}>
+                        {option.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="border-b border-white/20 pb-3">
+                  <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    Dates
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      aria-label="Start date"
+                      className="min-w-0 bg-transparent text-sm font-medium text-white outline-none [color-scheme:dark]"
+                      min={toInputDate(new Date())}
+                      required
+                      type="date"
+                      value={startDate}
+                      onChange={(event) => {
+                        const nextStart = event.target.value;
+                        setStartDate(nextStart);
+                        if (endDate < nextStart) setEndDate(toInputDate(addDays(new Date(`${nextStart}T00:00:00`), 7)));
+                      }}
+                    />
+                    <input
+                      aria-label="End date"
+                      className="min-w-0 bg-transparent text-sm font-medium text-white outline-none [color-scheme:dark]"
+                      min={startDate || toInputDate(new Date())}
+                      required
+                      type="date"
+                      value={endDate}
+                      onChange={(event) => setEndDate(event.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="border-b border-white/20 pb-3">
+                  <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55" htmlFor="trip-style">
+                    <Users className="h-3.5 w-3.5" />
+                    Style
+                  </label>
+                  <select
+                    id="trip-style"
+                    className="w-full cursor-pointer bg-transparent pr-8 text-sm font-medium text-white outline-none [color-scheme:dark]"
+                    value={tripStyle}
+                    onChange={(event) => setTripStyle(event.target.value)}
+                  >
+                    {plannerStyleOptions.map((option) => (
+                      <option key={option} className="bg-slate-950 text-white" value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="border-b border-white/20 pb-3">
+                  <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55">
+                    <IndianRupee className="h-3.5 w-3.5" />
+                    Budget
+                  </p>
+                  <p className="text-sm font-semibold text-white">{selectedDestination?.budgetLabel}</p>
+                </div>
+
+                <Button className="h-12 px-6" disabled={saving || !destination.trim()} type="submit">
+                  {saving ? "Creating..." : "Create Trip"}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="border-b border-white/20 pb-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-white/55" htmlFor="trip-description">
+                  <PencilLine className="h-3.5 w-3.5" />
+                  Description
+                </label>
+                <textarea
+                  id="trip-description"
+                  className="min-h-20 w-full resize-none bg-transparent text-sm font-medium leading-6 text-white outline-none placeholder:text-white/38"
+                  placeholder="Add what this trip should optimize for."
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-white/50">Loading...</p>
+          )}
+        </form>
       </div>
     </AppShell>
   );
