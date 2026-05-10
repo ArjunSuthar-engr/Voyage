@@ -26,37 +26,43 @@ const destinationOptions = [
     title: "Tokyo To Kyoto",
     budgetAmount: 95000,
     budgetLabel: "From ₹95k",
-    description: "Food, stays, transit, and temple days across Tokyo, Hakone, Kyoto, and Osaka.",
+    description:
+      "A rail-first Japan route with Tokyo food neighborhoods, a Hakone hot spring pause, Kyoto temple days, and an Osaka street-food finish. Balance efficient transit with relaxed mornings, luggage-friendly transfers, and one or two anchor activities per city.",
   },
   {
     title: "Lisbon Coast",
     budgetAmount: 90000,
     budgetLabel: "From ₹90k",
-    description: "Neighborhood walks, Sintra day trips, seafood meals, and coastal transfers.",
+    description:
+      "A coastal Portugal itinerary built around Lisbon neighborhoods, Sintra viewpoints, seafood meals, and easy train or rideshare transfers. Keep the pace flexible with scenic day trips, late dinners, and time for viewpoints, tiled streets, and waterfront walks.",
   },
   {
     title: "Barcelona City Break",
     budgetAmount: 65000,
     budgetLabel: "From ₹65k",
-    description: "Architecture, food markets, beach time, museums, and a Montserrat day trip.",
+    description:
+      "A compact Barcelona plan focused on Gaudi architecture, food markets, beach time, museums, and a Montserrat day trip. Prioritize timed-entry sights, walkable neighborhoods, and evenings for tapas, rooftops, and relaxed city wandering.",
   },
   {
     title: "Golden Triangle",
     budgetAmount: 24000,
     budgetLabel: "From ₹24k",
-    description: "Delhi, Agra, and Jaipur with monument entries, local food, and intercity transport.",
+    description:
+      "A classic Delhi, Agra, and Jaipur route with monument entries, local food, guided history stops, and practical intercity transport. Build in early starts for major sights, buffer time for transfers, and a mix of markets, forts, museums, and regional meals.",
   },
   {
     title: "Alpine Rail Loop",
     budgetAmount: 190000,
     budgetLabel: "From ₹1.9L",
-    description: "Zurich, Lucerne, Interlaken, and Milan with rail travel and alpine sightseeing.",
+    description:
+      "A scenic rail loop through Zurich, Lucerne, Interlaken, and Milan with alpine viewpoints, lake towns, and comfortable train connections. Leave room for weather-dependent mountain days, slower cafe stops, and one premium experience such as a panoramic rail segment or spa stay.",
   },
   {
     title: "New York Weekend",
     budgetAmount: 140000,
     budgetLabel: "From ₹1.4L",
-    description: "Manhattan, Brooklyn, and Queens with museums, food stops, subway rides, and skyline views.",
+    description:
+      "A high-energy New York weekend covering Manhattan, Brooklyn, and Queens through museums, food stops, subway rides, and skyline views. Group activities by neighborhood to reduce transit time while preserving space for reservations, shows, shopping, and late-night city walks.",
   },
 ];
 
@@ -70,6 +76,7 @@ export default function NewTripPage() {
   const [endDate, setEndDate] = useState(defaultEnd);
   const [tripStyle, setTripStyle] = useState(plannerStyleOptions[0]);
   const [description, setDescription] = useState(destinationOptions[0]?.description ?? "");
+  const [budgetAmount, setBudgetAmount] = useState(destinationOptions[0]?.budgetAmount ?? 0);
   const [saving, setSaving] = useState(false);
 
   const selectedDestination = useMemo(
@@ -90,6 +97,7 @@ export default function NewTripPage() {
       if (matchingDestination) {
         setDestination(matchingDestination.title);
         setDescription(matchingDestination.description);
+        setBudgetAmount(matchingDestination.budgetAmount);
       }
 
       if (requestedStyle && plannerStyleOptions.includes(requestedStyle)) {
@@ -123,7 +131,10 @@ export default function NewTripPage() {
   function handleDestinationChange(value: string) {
     const option = destinationOptions.find((destinationOption) => destinationOption.title === value);
     setDestination(value);
-    if (option) setDescription(option.description);
+    if (option) {
+      setDescription(option.description);
+      setBudgetAmount(option.budgetAmount);
+    }
   }
 
   async function handleCreateTrip(event: React.FormEvent<HTMLFormElement>) {
@@ -139,12 +150,17 @@ export default function NewTripPage() {
       return;
     }
 
+    if (!Number.isFinite(budgetAmount) || budgetAmount <= 0) {
+      toast.error("Enter a valid budget");
+      return;
+    }
+
     const input: TripInput = {
       name: destination,
       description: description.trim() || `${tripStyle} route for ${destination}.`,
       start_date: startDate,
       end_date: endDate,
-      budget_amount: selectedDestination.budgetAmount,
+      budget_amount: Math.round(budgetAmount),
       currency: "INR",
     };
 
@@ -252,7 +268,16 @@ export default function NewTripPage() {
                     <IndianRupee className="h-3.5 w-3.5" />
                     Budget
                   </p>
-                  <p className="text-sm font-semibold text-white">{selectedDestination?.budgetLabel}</p>
+                  <input
+                    aria-label="Trip budget"
+                    className="w-full bg-transparent text-sm font-semibold text-white outline-none placeholder:text-white/38 [color-scheme:dark]"
+                    inputMode="numeric"
+                    min={1}
+                    required
+                    type="number"
+                    value={budgetAmount || ""}
+                    onChange={(event) => setBudgetAmount(event.target.valueAsNumber || 0)}
+                  />
                 </div>
 
                 <Button className="h-12 px-6" disabled={saving || !destination.trim()} type="submit">
