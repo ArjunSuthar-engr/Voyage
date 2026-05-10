@@ -736,22 +736,23 @@ export default function Home() {
               {recommendedPlans.map((plan, index) => (
                 <button
                   key={plan.country}
-                  className={`flex w-full items-center justify-between bg-[#1d2127] p-5 text-left transition hover:bg-[#242b34] ${
+                  className={`flex w-full items-center justify-between gap-4 bg-[#1d2127] p-4 text-left transition hover:bg-[#242b34] sm:p-5 ${
                     selectedPlanIndex === index ? "text-white" : "text-white/55"
                   }`}
                   type="button"
                   onClick={() => setSelectedPlanIndex(index)}
                 >
-                  <span>
+                  <span className="min-w-0">
                     <span className="block text-xs font-semibold uppercase text-white/40">{plan.country}</span>
-                    <span className="mt-2 block font-serif text-2xl font-semibold">{plan.title}</span>
+                    <span className="mt-2 block truncate font-serif text-xl font-semibold sm:text-2xl">{plan.title}</span>
+                    <span className="mt-1 block truncate text-xs text-white/40">{plan.days}</span>
                   </span>
-                  <span className="text-sm">{plan.budget}</span>
+                  <span className="shrink-0 text-xs sm:text-sm">{plan.budget}</span>
                 </button>
               ))}
             </div>
 
-            <article className="relative min-h-[620px] overflow-hidden">
+            <article className="relative min-h-[460px] overflow-hidden sm:min-h-[560px] lg:min-h-[620px]">
               <Image
                 key={selectedPlan.imageUrl}
                 alt={selectedPlan.title}
@@ -760,36 +761,33 @@ export default function Home() {
                 sizes="(min-width: 1024px) 68vw, 100vw"
                 src={selectedPlan.imageUrl}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/22 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                <div className="mb-4 flex flex-wrap gap-3 text-xs font-semibold uppercase text-white/58">
-                  <span>{selectedPlan.country}</span>
-                  <span>{selectedPlan.days}</span>
-                  <span>{selectedPlan.budget}</span>
-                </div>
-                <h3 className="max-w-2xl font-serif text-5xl font-semibold leading-none text-white sm:text-7xl">{selectedPlan.title}</h3>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {selectedPlan.route.map((stop) => (
-                    <span key={stop} className="border border-white/20 bg-white/12 px-4 py-2 text-sm text-white backdrop-blur">
-                      {stop}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-8 grid gap-px overflow-hidden bg-white/12 sm:grid-cols-4">
-                  {selectedPlan.places.map((place) => (
-                    <div key={place} className="bg-black/28 p-4">
-                      <p className="text-sm font-medium text-white">{place}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 border-t border-white/14 bg-black/68 p-5 backdrop-blur-md sm:p-7">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="font-serif text-3xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
+                      {selectedPlan.title}
+                    </h3>
+                    <div className="mt-4">
+                      <p className="text-[11px] font-semibold uppercase text-white/42">Route</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedPlan.route.map((stop) => (
+                          <span key={stop} className="bg-white/12 px-3 py-1.5 text-xs font-medium text-white sm:text-sm">
+                            {stop}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                  <button
+                    className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-3 bg-white px-6 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                    type="button"
+                    onClick={() => openAuthPanel("login", "/trips/new")}
+                  >
+                    Plan Trip
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  className="mt-8 inline-flex h-12 items-center justify-center gap-3 bg-white px-6 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100"
-                  type="button"
-                  onClick={() => openAuthPanel("login", "/trips/new")}
-                >
-                  Plan Trip
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
             </article>
           </div>
