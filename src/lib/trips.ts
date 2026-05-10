@@ -20,8 +20,12 @@ function attachActivities(stops: Stop[], activities: Activity[]) {
 }
 
 export async function getTrips() {
-  await requireUserId();
-  const { data, error } = await supabase.from("trips").select("*").order("created_at", { ascending: false });
+  const ownerId = await requireUserId();
+  const { data, error } = await supabase
+    .from("trips")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as Trip[];
 }
