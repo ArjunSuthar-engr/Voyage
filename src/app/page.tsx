@@ -542,12 +542,12 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-white/12 via-slate-900/10 to-slate-950/80" />
 
         <section className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-center px-6 pb-44 pt-16 sm:px-8 lg:pb-40">
-          <div className="max-w-4xl">
+          <div className="max-w-4xl -translate-y-12 sm:-translate-y-16 lg:-translate-y-20">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur">
               <Mountain className="h-4 w-4" />
               Multi-city journeys, planned in minutes
             </p>
-            <h1 className="max-w-5xl font-serif text-6xl font-semibold italic leading-[0.95] tracking-normal text-white drop-shadow-sm sm:text-7xl lg:text-8xl">
+             <h1 className="max-w-5xl font-serif text-6xl font-semibold italic leading-[0.95] tracking-normal text-white drop-shadow-sm sm:text-7xl lg:text-8xl">
               Plan Beautiful Trips Across Every Stop
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/82 sm:text-lg">
@@ -722,37 +722,55 @@ export default function Home() {
         </form>
       </section>
 
-      <section id="recommended" className="relative z-10 scroll-mt-20 border-y border-white/10 bg-[#181b20] px-4 py-20 sm:px-8">
+      <section id="recommended" className="relative z-10 scroll-mt-20 border-y border-white/10 bg-[#181b20] px-4 py-14 sm:px-8 sm:py-16">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 text-center">
+          <div className="mb-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-normal text-white/40">Recommended</p>
             <h2 className="mx-auto mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">
               Top Places, Already Planned.
             </h2>
           </div>
 
-          <div className="grid overflow-hidden border border-white/10 bg-white/10 lg:grid-cols-[0.32fr_0.68fr]">
-            <div className="grid gap-px bg-white/10 lg:block">
+          <div className="grid overflow-hidden border border-white/10 bg-black/42 lg:grid-cols-[0.34fr_0.66fr]">
+            <div className="border-b border-white/10 bg-black/58 p-3 backdrop-blur-md lg:border-b-0 lg:border-r lg:p-4">
+              <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-semibold uppercase text-white/34">
+                <span>Places</span>
+                <span>{recommendedPlans.length} routes</span>
+              </div>
+              <div className="grid max-h-[330px] gap-2 overflow-y-auto pr-1 [scrollbar-color:rgba(255,255,255,0.28)_transparent] [scrollbar-width:thin] lg:max-h-[438px]">
               {recommendedPlans.map((plan, index) => (
                 <button
                   key={plan.country}
-                  className={`flex w-full items-center justify-between gap-4 bg-[#1d2127] p-4 text-left transition hover:bg-[#242b34] sm:p-5 ${
-                    selectedPlanIndex === index ? "text-white" : "text-white/55"
+                  className={`relative flex w-full items-center justify-between gap-4 border p-4 text-left transition ${
+                    selectedPlanIndex === index
+                      ? "border-white/16 bg-black/68 text-white shadow-[inset_3px_0_0_rgba(204,251,241,0.85)] backdrop-blur-md"
+                      : "border-white/10 bg-white/[0.04] text-white/58 hover:border-white/20 hover:bg-white/[0.08] hover:text-white/82"
                   }`}
                   type="button"
                   onClick={() => setSelectedPlanIndex(index)}
                 >
                   <span className="min-w-0">
-                    <span className="block text-xs font-semibold uppercase text-white/40">{plan.country}</span>
-                    <span className="mt-2 block truncate font-serif text-xl font-semibold sm:text-2xl">{plan.title}</span>
-                    <span className="mt-1 block truncate text-xs text-white/40">{plan.days}</span>
+                    <span className={`block text-[11px] font-semibold uppercase ${selectedPlanIndex === index ? "text-white/55" : "text-white/34"}`}>
+                      {plan.country}
+                    </span>
+                    <span className="mt-1.5 block truncate font-serif text-lg font-semibold sm:text-xl">{plan.title}</span>
+                    <span className={`mt-2 block truncate text-xs ${selectedPlanIndex === index ? "text-white/50" : "text-white/35"}`}>
+                      {plan.days} / {plan.route.length} stops
+                    </span>
                   </span>
-                  <span className="shrink-0 text-xs sm:text-sm">{plan.budget}</span>
+                  <span
+                    className={`shrink-0 border px-2 py-1 text-xs font-semibold ${
+                      selectedPlanIndex === index ? "border-white/12 bg-white/12 text-white" : "border-white/10 text-white/48"
+                    }`}
+                  >
+                    {plan.budget}
+                  </span>
                 </button>
               ))}
+              </div>
             </div>
 
-            <article className="relative min-h-[460px] overflow-hidden sm:min-h-[560px] lg:min-h-[620px]">
+            <article className="relative min-h-[380px] overflow-hidden sm:min-h-[460px] lg:min-h-[520px]">
               <Image
                 key={selectedPlan.imageUrl}
                 alt={selectedPlan.title}
@@ -761,18 +779,18 @@ export default function Home() {
                 sizes="(min-width: 1024px) 68vw, 100vw"
                 src={selectedPlan.imageUrl}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 border-t border-white/14 bg-black/68 p-5 backdrop-blur-md sm:p-7">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-black/8 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-black/30 p-4 backdrop-blur-[2px] sm:p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div className="min-w-0">
-                    <h3 className="font-serif text-3xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
+                    <h3 className="font-serif text-2xl font-semibold leading-none text-white sm:text-4xl lg:text-5xl">
                       {selectedPlan.title}
                     </h3>
-                    <div className="mt-4">
-                      <p className="text-[11px] font-semibold uppercase text-white/42">Route</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-3">
+                      <p className="text-[10px] font-semibold uppercase text-white/38">Route</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
                         {selectedPlan.route.map((stop) => (
-                          <span key={stop} className="bg-white/12 px-3 py-1.5 text-xs font-medium text-white sm:text-sm">
+                          <span key={stop} className="bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90">
                             {stop}
                           </span>
                         ))}
@@ -780,7 +798,7 @@ export default function Home() {
                     </div>
                   </div>
                   <button
-                    className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-3 bg-white px-6 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
+                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-3 bg-white px-5 text-xs font-semibold uppercase text-slate-950 transition hover:bg-teal-100 sm:w-auto"
                     type="button"
                     onClick={() => openAuthPanel("login", "/trips/new")}
                   >
@@ -800,19 +818,28 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase text-white/40">Budget highlights</p>
             <h2 className="mt-3 font-serif text-4xl font-semibold leading-tight text-white sm:text-6xl">Choose By Budget.</h2>
           </div>
-          <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-3">
-            {budgetHighlights.map((item) => (
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {budgetHighlights.map((item, index) => (
               <button
                 key={item.label}
-                className="bg-[#1d2127] p-7 text-left transition hover:bg-[#242b34]"
+                className="group flex min-h-72 flex-col justify-between border border-white/10 bg-[#1d2127] p-6 text-left transition hover:-translate-y-1 hover:border-white/25 hover:bg-[#242b34] sm:p-7"
                 type="button"
                 onClick={() => openAuthPanel("login", "/trips/new")}
               >
-                <p className="font-serif text-6xl font-semibold text-white">{item.value}</p>
-                <div className="mt-6 border-t border-white/10 pt-5">
-                  <p className="text-xl font-semibold text-white">{item.label}</p>
-                  <p className="mt-2 text-sm text-white/58">{item.detail}</p>
+                <div>
+                  <div className="mb-8 flex items-start justify-between gap-4">
+                    <p className="font-serif text-6xl font-semibold leading-none text-white">{item.value}</p>
+                    <span className="border border-white/10 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase text-white/42">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-semibold text-white">{item.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-white/58">{item.detail}</p>
                 </div>
+                <span className="mt-8 inline-flex items-center gap-2 border-t border-white/10 pt-5 text-xs font-semibold uppercase text-white/58 transition group-hover:text-white">
+                  Plan this budget
+                  <ArrowRight className="h-4 w-4" />
+                </span>
               </button>
             ))}
           </div>
