@@ -908,7 +908,7 @@ export default function Home() {
       </footer>
 
       {authOpen ? (
-        <aside className="fixed bottom-4 right-4 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg overflow-hidden border border-white/25 bg-white/12 p-5 text-white shadow-2xl backdrop-blur-2xl sm:bottom-8 sm:right-8 sm:max-h-[calc(100dvh-4rem)]">
+        <aside className="fixed bottom-4 right-4 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg overflow-hidden border border-white/25 bg-black p-5 text-white shadow-2xl sm:bottom-8 sm:right-8 sm:max-h-[calc(100dvh-4rem)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,0.36),transparent_22%),radial-gradient(circle_at_82%_6%,rgba(20,184,166,0.24),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.16),rgba(255,255,255,0.04))]" />
           <div className="relative max-h-[calc(100dvh-4.5rem)] overflow-y-auto pb-20 pr-1 [scrollbar-color:rgba(255,255,255,0.35)_transparent] [scrollbar-width:thin] sm:max-h-[calc(100dvh-6.5rem)]">
             <div className="mb-4 flex items-start justify-between gap-4">
