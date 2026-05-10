@@ -19,19 +19,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { buildDateRange, dayCount, displayDate, displayDateRange } from "@/lib/dates";
 import { formatCurrency } from "@/lib/format";
+import { buildTimelineItems, type OpenDateSlot } from "@/lib/stop-suggestions";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import {
   createActivity,
   createStop,
   deleteActivity,
   deleteStop,
+  deleteTrip,
   getTripWithStops,
+  getTrips,
   setTripPublic,
   updateActivity,
   updateStop,
   updateTrip,
 } from "@/lib/trips";
-import type { Activity, ActivityInput, Stop, StopInput, TripInput, TripWithStops } from "@/lib/types";
+import type { Activity, ActivityInput, Stop, StopInput, Trip, TripInput, TripWithStops } from "@/lib/types";
 
 type ActivityModalState = {
   stop: Stop;
@@ -42,20 +45,23 @@ export default function TripDetailPage() {
   const params = useParams<{ tripId: string }>();
   const router = useRouter();
   const [trip, setTrip] = useState<TripWithStops | null>(null);
+  const [allTrips, setAllTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "list">("timeline");
   const [stopModalOpen, setStopModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState<Stop | undefined>();
+  const [stopDraftSlot, setStopDraftSlot] = useState<OpenDateSlot | undefined>();
   const [activityModal, setActivityModal] = useState<ActivityModalState>(null);
   const [tripSettingsOpen, setTripSettingsOpen] = useState(false);
 
   const loadTrip = useCallback(async () => {
     try {
-      const data = await getTripWithStops(params.tripId);
+      const [data, trips] = await Promise.all([getTripWithStops(params.tripId), getTrips()]);
       setTrip(data);
+      setAllTrips(trips);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not load trip");
-      router.replace("/dashboard");
+      router.replace("/trips");
     } finally {
       setLoading(false);
     }
@@ -84,6 +90,25 @@ export default function TripDetailPage() {
       .flatMap((stop) => (stop.activities ?? []).map((activity) => ({ activity, stop })))
       .sort((a, b) => `${a.activity.activity_date}${a.activity.start_time ?? ""}`.localeCompare(`${b.activity.activity_date}${b.activity.start_time ?? ""}`));
   }, [trip]);
+  const timelineItems = useMemo(() => (trip ? buildTimelineItems(trip.start_date, trip.end_date, trip.stops) : []), [trip]);
+  const stopOrderById = useMemo(() => {
+    const order = new Map<string, number>();
+    let stopNumber = 1;
+
+    timelineItems.forEach((item) => {
+      if (item.type !== "stop") return;
+      order.set(item.stop.id, stopNumber);
+      stopNumber += 1;
+    });
+
+    return order;
+  }, [timelineItems]);
+
+  function openStopModal(slot?: OpenDateSlot) {
+    setEditingStop(undefined);
+    setStopDraftSlot(slot);
+    setStopModalOpen(true);
+  }
 
   async function handleSaveTrip(input: TripInput) {
     if (!trip) return;
@@ -103,6 +128,7 @@ export default function TripDetailPage() {
       else await createStop(input);
       setStopModalOpen(false);
       setEditingStop(undefined);
+      setStopDraftSlot(undefined);
       toast.success(editingStop ? "Stop updated" : "Stop added");
       await loadTrip();
     } catch (error) {
@@ -144,6 +170,18 @@ export default function TripDetailPage() {
     }
   }
 
+  async function handleDeleteTrip() {
+    if (!trip) return;
+    if (!window.confirm(`Delete "${trip.name}" and all stops/activities?`)) return;
+    try {
+      await deleteTrip(trip.id);
+      toast.success("Trip deleted");
+      router.replace("/trips");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete trip");
+    }
+  }
+
   async function handleTogglePublic(isPublic: boolean) {
     if (!trip) return;
     try {
@@ -174,7 +212,7 @@ export default function TripDetailPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell currentTripId={trip.id} trips={allTrips}>
       <div className="space-y-6">
         <PageHero
           eyebrow={`${trip.stops.length} stops · ${dayCount(trip.start_date, trip.end_date)} days · ${trip.is_public ? "Public" : "Private"}`}
@@ -182,6 +220,15 @@ export default function TripDetailPage() {
           title={trip.name}
           description={trip.description || "Add city stops, activities, and cost estimates to build the full route."}
         >
+          <Button
+            aria-label="Delete trip"
+            className="absolute right-4 top-4 h-10 w-10 border border-red-300/40 bg-red-500/90 px-0 text-white hover:bg-red-400"
+            type="button"
+            variant="destructive"
+            onClick={handleDeleteTrip}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
           <div className="flex flex-col justify-between gap-4 border border-white/15 bg-black/28 p-4 backdrop-blur sm:flex-row sm:items-end">
             <div className="flex flex-wrap gap-4 text-sm text-white/72">
               <span className="inline-flex items-center gap-2">
@@ -200,10 +247,7 @@ export default function TripDetailPage() {
               </Button>
               <Button
                 type="button"
-                onClick={() => {
-                  setEditingStop(undefined);
-                  setStopModalOpen(true);
-                }}
+                onClick={() => openStopModal()}
               >
                 <Plus className="h-4 w-4" />
                 Add stop
@@ -235,10 +279,37 @@ export default function TripDetailPage() {
             {trip.stops.length ? (
               viewMode === "timeline" ? (
                 <div className="space-y-4">
-                  {trip.stops.map((stop, index) => (
-                    <Card key={stop.id} className="overflow-hidden">
-                      <CardHeader className="border-b border-white/10 bg-[#1d2127]">
-                        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                  {timelineItems.map((item) => {
+                    if (item.type === "slot") {
+                      return (
+                        <Card key={`slot-${item.slot.id}`} className="border-dashed border-teal-300/25 bg-teal-400/[0.03]">
+                          <CardContent className="flex flex-col justify-between gap-3 p-5 sm:flex-row sm:items-center">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className="border-teal-300/30 bg-teal-400/12 text-teal-100">Available</Badge>
+                                <Badge>{displayDateRange(item.slot.start_date, item.slot.end_date)}</Badge>
+                              </div>
+                              <h3 className="mt-2 text-lg font-semibold text-white">Open route time</h3>
+                              <p className="mt-1 text-sm text-white/55">
+                                {item.slot.dayCount} day{item.slot.dayCount === 1 ? "" : "s"} free. Add a reachable stop that fits this slot.
+                              </p>
+                            </div>
+                            <Button type="button" variant="secondary" onClick={() => openStopModal(item.slot)}>
+                              <Plus className="h-4 w-4" />
+                              Add stop here
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    const stop = item.stop;
+                    const index = (stopOrderById.get(stop.id) ?? 1) - 1;
+
+                    return (
+                      <Card key={stop.id} className="overflow-hidden">
+                        <CardHeader className="border-b border-white/10 bg-[#1d2127]">
+                          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <Badge>Stop {index + 1}</Badge>
@@ -264,6 +335,7 @@ export default function TripDetailPage() {
                               variant="ghost"
                               onClick={() => {
                                 setEditingStop(stop);
+                                setStopDraftSlot(undefined);
                                 setStopModalOpen(true);
                               }}
                             >
@@ -292,8 +364,9 @@ export default function TripDetailPage() {
                           </div>
                         )}
                       </CardContent>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : (
                 <Card>
@@ -328,10 +401,7 @@ export default function TripDetailPage() {
                     <p className="mt-1 text-sm text-white/50">Stops turn the trip into a real multi-city route.</p>
                   </div>
                   <Button
-                    onClick={() => {
-                      setEditingStop(undefined);
-                      setStopModalOpen(true);
-                    }}
+                    onClick={() => openStopModal()}
                   >
                     Add stop
                   </Button>
@@ -340,7 +410,7 @@ export default function TripDetailPage() {
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <BudgetSummary trip={trip} />
             <Card>
               <CardHeader>
@@ -369,13 +439,18 @@ export default function TripDetailPage() {
         onClose={() => {
           setStopModalOpen(false);
           setEditingStop(undefined);
+          setStopDraftSlot(undefined);
         }}
       >
         <StopForm
+          existingStops={trip.stops}
           initialStop={editingStop}
           nextSortOrder={trip.stops.length + 1}
+          preferredSlot={stopDraftSlot}
+          tripDescription={trip.description}
           tripEndDate={trip.end_date}
           tripId={trip.id}
+          tripName={trip.name}
           tripStartDate={trip.start_date}
           onSubmit={handleSaveStop}
         />

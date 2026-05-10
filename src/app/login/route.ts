@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export function GET(request: Request) {
   const url = new URL(request.url);
-  const next = url.searchParams.get("next") || "/dashboard";
+  const next = url.searchParams.get("next") || "/";
 
   url.pathname = "/";
   url.search = "";

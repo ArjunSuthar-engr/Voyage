@@ -30,3 +30,26 @@ select {
   background: #14b8a6;
   color: #0f172a;
 }
+
+.minimal-scrollbar {
+  scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+  scrollbar-width: thin;
+}
+
+.minimal-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.38);
+  border-radius: 999px;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(203 213 225 / 0.55);
+}

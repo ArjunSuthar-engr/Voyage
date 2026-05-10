@@ -126,7 +126,7 @@ export default function Home() {
   const [destinationLayout, setDestinationLayout] = useState<DropdownLayout | null>(null);
   const [styleLayout, setStyleLayout] = useState<DropdownLayout | null>(null);
   const [loading, setLoading] = useState(false);
-  const [postAuthPath, setPostAuthPath] = useState("/dashboard");
+  const [postAuthPath, setPostAuthPath] = useState("/");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
   const destinationQuery = tripDestination.trim().toLowerCase();
@@ -155,7 +155,7 @@ export default function Home() {
     if (requestedMode === "login" || requestedMode === "signup") {
       window.setTimeout(() => {
         setMode(requestedMode);
-        setPostAuthPath(params.get("next") || "/dashboard");
+        setPostAuthPath(params.get("next") || "/");
         setAuthOpen(true);
         router.replace("/", { scroll: false });
       }, 0);
