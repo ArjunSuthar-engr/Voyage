@@ -7,14 +7,22 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { supabase } from "@/lib/supabase";
+import type { Trip } from "@/lib/types";
 import { getUserDisplayName } from "@/lib/user";
 
-export function TopNav() {
+type TopNavProps = {
+  currentTripId?: string;
+  trips?: Trip[];
+};
+
+export function TopNav({ currentTripId, trips = [] }: TopNavProps) {
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const hasTripSelector = trips.length > 0 && currentTripId;
 
   useEffect(() => {
     async function loadUser() {
@@ -48,10 +56,25 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#101216]/95 backdrop-blur">
       <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
-        <nav className="flex items-center gap-4">
-          <Link className="transition hover:text-white" href="/trips">
-            Trips
-          </Link>
+        <nav className="flex min-w-0 items-center gap-4">
+          {hasTripSelector ? (
+            <NativeSelect
+              aria-label="Select trip"
+              className="h-9 max-w-44 border-white/10 bg-[#181b20] pr-8 text-xs font-semibold uppercase text-white/72 sm:max-w-64"
+              value={currentTripId}
+              onChange={(event) => router.push(`/trips/${event.target.value}`)}
+            >
+              {trips.map((trip) => (
+                <option key={trip.id} value={trip.id}>
+                  {trip.name}
+                </option>
+              ))}
+            </NativeSelect>
+          ) : (
+            <Link className="transition hover:text-white" href="/trips">
+              Trips
+            </Link>
+          )}
         </nav>
         <Link href="/" className="font-serif text-2xl font-semibold italic normal-case text-white">
           Voyage

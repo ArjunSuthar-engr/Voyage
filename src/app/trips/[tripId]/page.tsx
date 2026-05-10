@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { CalendarDays, Edit2, List, MapPin, Plus, Route, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -178,7 +177,7 @@ export default function TripDetailPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell currentTripId={trip.id} trips={allTrips}>
       <div className="space-y-6">
         <PageHero
           eyebrow={`${trip.stops.length} stops · ${dayCount(trip.start_date, trip.end_date)} days · ${trip.is_public ? "Public" : "Private"}`}
@@ -215,45 +214,6 @@ export default function TripDetailPage() {
             </div>
           </div>
         </PageHero>
-
-        <section className="border border-white/10 bg-[#1d2127] p-5">
-          <div className="mb-4 flex items-end justify-between gap-3 border-b border-white/10 pb-3">
-            <div>
-              <p className="text-xs font-semibold uppercase text-white/40">Trip library</p>
-              <h2 className="mt-1 font-serif text-3xl font-semibold text-white">My trips</h2>
-            </div>
-            <span className="text-sm text-white/50">{allTrips.length} total</span>
-          </div>
-          {allTrips.length ? (
-            <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-3">
-              {allTrips.map((item) => {
-                const selected = item.id === trip.id;
-                return (
-                  <Link
-                    key={item.id}
-                    className={`block bg-[#181b20] p-4 transition hover:bg-[#242b34] ${
-                      selected ? "outline outline-1 outline-white/35" : ""
-                    }`}
-                    href={`/trips/${item.id}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-serif text-xl font-semibold text-white">{item.name}</p>
-                        <p className="mt-1 text-xs text-white/50">{displayDateRange(item.start_date, item.end_date)}</p>
-                      </div>
-                      <Badge className={item.is_public ? "border-teal-300/30 bg-teal-400/12 text-teal-100" : ""}>
-                        {item.is_public ? "Public" : "Private"}
-                      </Badge>
-                    </div>
-                    {item.description ? <p className="mt-3 line-clamp-2 text-sm text-white/55">{item.description}</p> : null}
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-white/50">No trips found.</p>
-          )}
-        </section>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
           <div className="space-y-4">
