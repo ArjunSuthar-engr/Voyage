@@ -4,7 +4,7 @@ Voyage is a hackathon travel planner for building multi-city trips with stops, a
 
 ## Judge Demo
 
-Live demo: `https://the-voyage-ten.vercel.app
+Live demo: https://the-voyage-ten.vercel.app
 
 Demo login:
 
