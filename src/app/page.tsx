@@ -46,6 +46,33 @@ const recommendedPlans = [
     route: ["Barcelona", "Montserrat", "Sitges"],
     places: ["Sagrada Familia", "Gothic Quarter", "Park Guell", "Barceloneta"],
   },
+  {
+    country: "India",
+    title: "Golden Triangle",
+    days: "6 days",
+    budget: "₹₹",
+    imageUrl: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1500&q=85",
+    route: ["Delhi", "Agra", "Jaipur"],
+    places: ["India Gate", "Taj Mahal", "Amber Fort", "Hawa Mahal"],
+  },
+  {
+    country: "Europe",
+    title: "Alpine Rail Loop",
+    days: "8 days",
+    budget: "₹₹₹",
+    imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1500&q=85",
+    route: ["Zurich", "Lucerne", "Interlaken", "Milan"],
+    places: ["Lake Zurich", "Chapel Bridge", "Jungfrau", "Duomo"],
+  },
+  {
+    country: "USA",
+    title: "New York Weekend",
+    days: "4 days",
+    budget: "₹₹₹",
+    imageUrl: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1500&q=85",
+    route: ["Manhattan", "Brooklyn", "Queens"],
+    places: ["Central Park", "DUMBO", "MoMA", "Times Square"],
+  },
 ];
 
 const budgetHighlights = [
