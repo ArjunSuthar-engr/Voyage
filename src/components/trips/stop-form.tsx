@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { displayDateRange } from "@/lib/dates";
-import { buildStopSuggestions, type StopSuggestion } from "@/lib/stop-suggestions";
+import { formatCurrency } from "@/lib/format";
+import { buildStopSuggestions, type OpenDateSlot, type StopSuggestion } from "@/lib/stop-suggestions";
 import type { Stop, StopInput } from "@/lib/types";
 
 type StopFormProps = {
@@ -18,6 +19,7 @@ type StopFormProps = {
   tripStartDate: string;
   tripEndDate: string;
   existingStops: Stop[];
+  preferredSlot?: OpenDateSlot;
   initialStop?: Stop;
   nextSortOrder: number;
   onSubmit: (input: StopInput) => Promise<void>;
@@ -30,6 +32,7 @@ export function StopForm({
   tripStartDate,
   tripEndDate,
   existingStops,
+  preferredSlot,
   initialStop,
   nextSortOrder,
   onSubmit,
@@ -42,14 +45,15 @@ export function StopForm({
         tripStartDate,
         tripEndDate,
         existingStops,
+        preferredSlot,
       }),
-    [existingStops, tripDescription, tripEndDate, tripName, tripStartDate],
+    [existingStops, preferredSlot, tripDescription, tripEndDate, tripName, tripStartDate],
   );
   const nextSuggestion = !initialStop ? suggestions.find((suggestion) => !suggestion.alreadyAdded) : undefined;
   const [city, setCity] = useState(initialStop?.city ?? nextSuggestion?.city ?? "");
   const [country, setCountry] = useState(initialStop?.country ?? nextSuggestion?.country ?? "");
-  const [startDate, setStartDate] = useState(initialStop?.start_date ?? nextSuggestion?.start_date ?? tripStartDate);
-  const [endDate, setEndDate] = useState(initialStop?.end_date ?? nextSuggestion?.end_date ?? tripStartDate);
+  const [startDate, setStartDate] = useState(initialStop?.start_date ?? nextSuggestion?.start_date ?? preferredSlot?.start_date ?? tripStartDate);
+  const [endDate, setEndDate] = useState(initialStop?.end_date ?? nextSuggestion?.end_date ?? preferredSlot?.end_date ?? tripStartDate);
   const [stayCost, setStayCost] = useState(String(initialStop?.stay_cost ?? nextSuggestion?.stay_cost ?? 0));
   const [transportCost, setTransportCost] = useState(String(initialStop?.transport_cost ?? nextSuggestion?.transport_cost ?? 0));
   const [notes, setNotes] = useState(initialStop?.notes ?? nextSuggestion?.notes ?? "");
@@ -62,8 +66,8 @@ export function StopForm({
       setSelectedSuggestionKey("");
       setCity("");
       setCountry("");
-      setStartDate(tripStartDate);
-      setEndDate(tripStartDate);
+      setStartDate(preferredSlot?.start_date ?? tripStartDate);
+      setEndDate(preferredSlot?.end_date ?? tripStartDate);
       setStayCost("0");
       setTransportCost("0");
       setNotes("");
@@ -163,6 +167,11 @@ export function StopForm({
             <div className="shrink-0">
               <p className="text-xs font-semibold uppercase text-white/40">Suggested stops</p>
               <p className="mt-1 text-sm text-white/60">Route picks matched to {tripName}.</p>
+              {preferredSlot ? (
+                <p className="mt-1 text-xs font-medium uppercase text-teal-100/80">
+                  Available slot: {displayDateRange(preferredSlot.start_date, preferredSlot.end_date)}
+                </p>
+              ) : null}
               {selectedSuggestionKey ? (
                 <p className="mt-2 border border-teal-300/25 bg-teal-400/10 px-3 py-2 text-xs font-medium text-teal-100">
                   Stop selected. Review the details on the left, then click Add Stop.
@@ -190,11 +199,28 @@ export function StopForm({
                         <p className="mt-2 font-medium text-white">
                           {suggestion.city}, {suggestion.country}
                         </p>
-                        <p className="mt-1 text-xs text-white/55">{suggestion.notes}</p>
-                        <p className="mt-2 text-xs text-white/35">{suggestion.source}</p>
+                        <p className="mt-1 text-xs text-white/55">{suggestion.notes.split("\n\n")[0]}</p>
+                        <div className="mt-3 grid gap-1 text-xs text-white/45">
+                          <p>
+                            Stay: {suggestion.hotelName} · {formatCurrency(suggestion.hotelNightlyCost)}/night
+                          </p>
+                          <p>Reachable: {suggestion.transportSummary}</p>
+                          {suggestion.disabledReason ? <p className="text-red-200/80">{suggestion.disabledReason}</p> : null}
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold uppercase">
+                          <a className="text-teal-100/80 transition hover:text-teal-100" href={suggestion.mapsUrl} rel="noreferrer" target="_blank">
+                            Google Maps
+                          </a>
+                          <a className="text-white/40 transition hover:text-white/70" href={suggestion.hotelSourceUrl} rel="noreferrer" target="_blank">
+                            Hotel price
+                          </a>
+                          <a className="text-white/40 transition hover:text-white/70" href={suggestion.sourceUrl} rel="noreferrer" target="_blank">
+                            Route source
+                          </a>
+                        </div>
                       </div>
                       <Button
-                        disabled={suggestion.alreadyAdded}
+                        disabled={suggestion.alreadyAdded || Boolean(suggestion.disabledReason)}
                         size="sm"
                         type="button"
                         variant={suggestion.alreadyAdded ? "ghost" : "secondary"}
