@@ -60,7 +60,7 @@ supabase/schema.sql
 npm.cmd run dev
 ```
 
-Open `http://localhost:3000/login`.
+Open `http://localhost:3000`.
 
 ## Main Flow
 

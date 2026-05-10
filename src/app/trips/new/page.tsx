@@ -23,7 +23,7 @@ export default function NewTripPage() {
         return;
       }
       const { data } = await supabase.auth.getUser();
-      if (!data.user) router.replace("/login");
+      if (!data.user) router.replace("/?auth=login&next=/trips/new");
       else setReady(true);
     }
 

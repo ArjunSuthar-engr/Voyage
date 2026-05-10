@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, Mail, MapPin, Menu, Mountain, Users, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { EnvCallout } from "@/components/setup/env-callout";
@@ -25,6 +25,20 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [postAuthPath, setPostAuthPath] = useState("/dashboard");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedMode = params.get("auth");
+
+    if (requestedMode === "login" || requestedMode === "signup") {
+      window.setTimeout(() => {
+        setMode(requestedMode);
+        setPostAuthPath(params.get("next") || "/dashboard");
+        setAuthOpen(true);
+        router.replace("/", { scroll: false });
+      }, 0);
+    }
+  }, [router]);
 
   async function openAuthPanel(nextMode: AuthMode, targetPath: string) {
     if (isSupabaseConfigured) {

@@ -68,14 +68,14 @@ export default function TripDetailPage() {
       }
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
-        router.replace("/login");
+        router.replace(`/?auth=login&next=/trips/${params.tripId}`);
         return;
       }
       await loadTrip();
     }
 
     guard();
-  }, [loadTrip, router]);
+  }, [loadTrip, params.tripId, router]);
 
   const listActivities = useMemo(() => {
     if (!trip) return [];

@@ -14,7 +14,7 @@ export function TopNav() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
-    router.replace("/login");
+    router.replace("/");
   }
 
   return (

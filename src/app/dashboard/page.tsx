@@ -45,7 +45,7 @@ export default function DashboardPage() {
       }
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
-        router.replace("/login");
+        router.replace("/?auth=login&next=/dashboard");
         return;
       }
       setEmail(data.user.email ?? "");
