@@ -53,9 +53,24 @@ export function StopForm({
   const [stayCost, setStayCost] = useState(String(initialStop?.stay_cost ?? nextSuggestion?.stay_cost ?? 0));
   const [transportCost, setTransportCost] = useState(String(initialStop?.transport_cost ?? nextSuggestion?.transport_cost ?? 0));
   const [notes, setNotes] = useState(initialStop?.notes ?? nextSuggestion?.notes ?? "");
+  const [selectedSuggestionKey, setSelectedSuggestionKey] = useState(nextSuggestion ? `${nextSuggestion.city}-${nextSuggestion.country}` : "");
   const [saving, setSaving] = useState(false);
 
   function applySuggestion(suggestion: StopSuggestion) {
+    const suggestionKey = `${suggestion.city}-${suggestion.country}`;
+    if (selectedSuggestionKey === suggestionKey) {
+      setSelectedSuggestionKey("");
+      setCity("");
+      setCountry("");
+      setStartDate(tripStartDate);
+      setEndDate(tripStartDate);
+      setStayCost("0");
+      setTransportCost("0");
+      setNotes("");
+      return;
+    }
+
+    setSelectedSuggestionKey(suggestionKey);
     setCity(suggestion.city);
     setCountry(suggestion.country);
     setStartDate(suggestion.start_date);
@@ -86,8 +101,8 @@ export function StopForm({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_1.1fr]">
-      <form className="grid content-start gap-4" onSubmit={handleSubmit}>
+    <div className="grid gap-5 lg:h-[calc(92vh-170px)] lg:min-h-0 lg:grid-cols-[1fr_1.1fr] lg:overflow-hidden lg:overscroll-contain">
+      <form className="grid content-start gap-4 lg:min-h-0" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="stop-city">City</Label>
@@ -142,40 +157,55 @@ export function StopForm({
           {saving ? "Saving..." : initialStop ? "Update stop" : "Add stop"}
         </Button>
       </form>
-      <div className="space-y-4 rounded-none border border-white/10 bg-white/5 p-3">
+      <div className="flex min-h-0 flex-col overflow-hidden rounded-none border border-white/10 bg-white/5 p-3">
         {!initialStop && suggestions.length ? (
-          <div className="space-y-3">
-            <div>
+          <div className="flex h-full min-h-0 flex-col gap-3">
+            <div className="shrink-0">
               <p className="text-xs font-semibold uppercase text-white/40">Suggested stops</p>
               <p className="mt-1 text-sm text-white/60">Route picks matched to {tripName}.</p>
+              {selectedSuggestionKey ? (
+                <p className="mt-2 border border-teal-300/25 bg-teal-400/10 px-3 py-2 text-xs font-medium text-teal-100">
+                  Stop selected. Review the details on the left, then click Add Stop.
+                </p>
+              ) : null}
             </div>
-            <div className="grid gap-2">
-              {suggestions.map((suggestion, index) => (
-                <div key={`${suggestion.city}-${suggestion.country}`} className="border border-white/10 bg-[#181b20] p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge>Stop {index + 1}</Badge>
-                        <span className="text-xs text-white/50">{displayDateRange(suggestion.start_date, suggestion.end_date)}</span>
+            <div className="minimal-scrollbar grid min-h-0 flex-1 gap-2 overflow-y-auto overscroll-contain pr-2">
+              {suggestions.map((suggestion, index) => {
+                const suggestionKey = `${suggestion.city}-${suggestion.country}`;
+                const selected = selectedSuggestionKey === suggestionKey;
+
+                return (
+                  <div
+                    key={suggestionKey}
+                    className={`border p-3 transition ${
+                      selected ? "border-teal-300/30 bg-teal-400/[0.04]" : "border-white/10 bg-[#181b20]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={selected ? "border-teal-300/30 bg-teal-400/10 text-teal-100" : ""}>Stop {index + 1}</Badge>
+                          <span className="text-xs text-white/50">{displayDateRange(suggestion.start_date, suggestion.end_date)}</span>
+                        </div>
+                        <p className="mt-2 font-medium text-white">
+                          {suggestion.city}, {suggestion.country}
+                        </p>
+                        <p className="mt-1 text-xs text-white/55">{suggestion.notes}</p>
+                        <p className="mt-2 text-xs text-white/35">{suggestion.source}</p>
                       </div>
-                      <p className="mt-2 font-medium text-white">
-                        {suggestion.city}, {suggestion.country}
-                      </p>
-                      <p className="mt-1 text-xs text-white/55">{suggestion.notes}</p>
-                      <p className="mt-2 text-xs text-white/35">{suggestion.source}</p>
+                      <Button
+                        disabled={suggestion.alreadyAdded}
+                        size="sm"
+                        type="button"
+                        variant={suggestion.alreadyAdded ? "ghost" : "secondary"}
+                        onClick={() => applySuggestion(suggestion)}
+                      >
+                        {suggestion.alreadyAdded ? "Added" : "Use"}
+                      </Button>
                     </div>
-                    <Button
-                      disabled={suggestion.alreadyAdded}
-                      size="sm"
-                      type="button"
-                      variant={suggestion.alreadyAdded ? "ghost" : "secondary"}
-                      onClick={() => applySuggestion(suggestion)}
-                    >
-                      {suggestion.alreadyAdded ? "Added" : "Use"}
-                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : (

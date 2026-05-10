@@ -365,7 +365,7 @@ export default function TripDetailPage() {
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <BudgetSummary trip={trip} />
             <Card>
               <CardHeader>
