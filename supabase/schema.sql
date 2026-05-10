@@ -8,7 +8,7 @@ create table if not exists public.trips (
   start_date date not null,
   end_date date not null,
   budget_amount numeric(10, 2) not null default 0,
-  currency text not null default 'USD',
+  currency text not null default 'INR',
   is_public boolean not null default false,
   public_slug text not null unique default substring(replace(gen_random_uuid()::text, '-', ''), 1, 10),
   created_at timestamptz not null default now(),
@@ -173,3 +173,5 @@ create index if not exists trips_public_slug_idx on public.trips(public_slug);
 create index if not exists stops_trip_id_sort_order_idx on public.stops(trip_id, sort_order);
 create index if not exists activities_trip_id_idx on public.activities(trip_id);
 create index if not exists activities_stop_id_date_idx on public.activities(stop_id, activity_date);
+
+alter table public.trips alter column currency set default 'INR';

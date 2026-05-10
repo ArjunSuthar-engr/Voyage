@@ -22,7 +22,7 @@ const recommendedPlans = [
     country: "Japan",
     title: "Tokyo To Kyoto",
     days: "7 days",
-    budget: "$$",
+    budget: "₹₹",
     imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1500&q=85",
     route: ["Tokyo", "Hakone", "Kyoto", "Osaka"],
     places: ["Shibuya", "Lake Ashi", "Fushimi Inari", "Dotonbori"],
@@ -31,7 +31,7 @@ const recommendedPlans = [
     country: "Portugal",
     title: "Lisbon Coast",
     days: "5 days",
-    budget: "$",
+    budget: "₹",
     imageUrl: "https://images.unsplash.com/photo-1501927023255-9063be98970c?auto=format&fit=crop&w=1500&q=85",
     route: ["Lisbon", "Sintra", "Cascais"],
     places: ["Alfama", "Pena Palace", "Boca do Inferno", "Time Out Market"],
@@ -40,7 +40,7 @@ const recommendedPlans = [
     country: "Spain",
     title: "Barcelona City Break",
     days: "4 days",
-    budget: "$$",
+    budget: "₹₹",
     imageUrl: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1500&q=85",
     route: ["Barcelona", "Montserrat", "Sitges"],
     places: ["Sagrada Familia", "Gothic Quarter", "Park Guell", "Barceloneta"],
@@ -48,9 +48,9 @@ const recommendedPlans = [
 ];
 
 const budgetHighlights = [
-  { label: "Saver", value: "$", detail: "Hostels, trains, street food" },
-  { label: "Balanced", value: "$$", detail: "Hotels, tours, local dining" },
-  { label: "Premium", value: "$$$", detail: "Boutique stays, private transfers" },
+  { label: "Saver", value: "₹", detail: "Hostels, trains, street food" },
+  { label: "Balanced", value: "₹₹", detail: "Hotels, tours, local dining" },
+  { label: "Premium", value: "₹₹₹", detail: "Boutique stays, private transfers" },
 ];
 
 export default function Home() {

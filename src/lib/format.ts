@@ -24,10 +24,11 @@ export function moneyNumber(value: MoneyValue) {
   return Number(value ?? 0);
 }
 
-export function formatCurrency(value: MoneyValue, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(value: MoneyValue, currency = "INR") {
+  void currency;
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency,
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(moneyNumber(value));
 }

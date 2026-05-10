@@ -4,7 +4,7 @@ export type CityOption = {
   city: string;
   country: string;
   region: string;
-  costIndex: "$" | "$$" | "$$$";
+  costIndex: "₹" | "₹₹" | "₹₹₹";
   popularity: string;
   imageUrl: string;
   description: string;
@@ -24,7 +24,7 @@ export const recommendedCities: CityOption[] = [
     city: "Tokyo",
     country: "Japan",
     region: "East Asia",
-    costIndex: "$$$",
+    costIndex: "₹₹₹",
     popularity: "Food, design, transit",
     imageUrl:
       "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80",
@@ -34,7 +34,7 @@ export const recommendedCities: CityOption[] = [
     city: "Kyoto",
     country: "Japan",
     region: "East Asia",
-    costIndex: "$$",
+    costIndex: "₹₹",
     popularity: "Temples, cafes, gardens",
     imageUrl:
       "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=80",
@@ -44,7 +44,7 @@ export const recommendedCities: CityOption[] = [
     city: "Barcelona",
     country: "Spain",
     region: "Europe",
-    costIndex: "$$",
+    costIndex: "₹₹",
     popularity: "Architecture, beaches, tapas",
     imageUrl:
       "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=900&q=80",
@@ -54,7 +54,7 @@ export const recommendedCities: CityOption[] = [
     city: "Lisbon",
     country: "Portugal",
     region: "Europe",
-    costIndex: "$$",
+    costIndex: "₹₹",
     popularity: "Views, seafood, neighborhoods",
     imageUrl:
       "https://images.unsplash.com/photo-1501927023255-9063be98970c?auto=format&fit=crop&w=900&q=80",
@@ -67,7 +67,7 @@ export const activityTemplates: ActivityTemplate[] = [
     title: "Neighborhood food walk",
     category: "food",
     duration_minutes: 150,
-    cost: 55,
+    cost: 4600,
     notes: "Add a few flexible stops so the plan still works if one place is crowded.",
     tags: ["food", "walking", "local"],
   },
@@ -75,7 +75,7 @@ export const activityTemplates: ActivityTemplate[] = [
     title: "Museum or gallery block",
     category: "activity",
     duration_minutes: 120,
-    cost: 24,
+    cost: 2000,
     notes: "Book tickets ahead if the trip is during a weekend.",
     tags: ["culture", "rainy day", "ticketed"],
   },
@@ -83,7 +83,7 @@ export const activityTemplates: ActivityTemplate[] = [
     title: "Airport or rail transfer",
     category: "transport",
     duration_minutes: 60,
-    cost: 35,
+    cost: 2900,
     notes: "Include buffer time around check-in and luggage storage.",
     tags: ["transfer", "arrival", "departure"],
   },
@@ -99,7 +99,7 @@ export const activityTemplates: ActivityTemplate[] = [
     title: "Signature sightseeing route",
     category: "activity",
     duration_minutes: 180,
-    cost: 40,
+    cost: 3300,
     notes: "Group nearby landmarks to avoid crisscrossing the city.",
     tags: ["sightseeing", "landmarks", "walking"],
   },
@@ -107,7 +107,7 @@ export const activityTemplates: ActivityTemplate[] = [
     title: "Market and souvenir stop",
     category: "shopping",
     duration_minutes: 90,
-    cost: 80,
+    cost: 6700,
     notes: "Keep this flexible and move it if weather changes.",
     tags: ["shopping", "market", "gifts"],
   },

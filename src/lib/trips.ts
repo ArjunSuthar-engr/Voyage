@@ -37,7 +37,7 @@ export async function createTrip(input: TripInput) {
       start_date: input.start_date,
       end_date: input.end_date,
       budget_amount: input.budget_amount,
-      currency: input.currency,
+      currency: "INR",
     })
     .select("*")
     .single();
@@ -56,7 +56,7 @@ export async function updateTrip(tripId: string, input: TripInput) {
       start_date: input.start_date,
       end_date: input.end_date,
       budget_amount: input.budget_amount,
-      currency: input.currency,
+      currency: "INR",
     })
     .eq("id", tripId)
     .select("*")
@@ -213,8 +213,8 @@ export async function createDemoTrip() {
     description: "A polished demo itinerary through Tokyo, Kyoto, and Osaka with transport, stays, food, and sightseeing.",
     start_date: tokyoStart,
     end_date: osakaEnd,
-    budget_amount: 4200,
-    currency: "USD",
+    budget_amount: 350000,
+    currency: "INR",
   });
 
   const { data: stops, error: stopError } = await supabase
@@ -226,8 +226,8 @@ export async function createDemoTrip() {
         country: "Japan",
         start_date: tokyoStart,
         end_date: tokyoEnd,
-        stay_cost: 620,
-        transport_cost: 180,
+        stay_cost: 52000,
+        transport_cost: 15000,
         sort_order: 1,
         notes: "Use Tokyo as the arrival base and keep the first evening flexible.",
       },
@@ -237,8 +237,8 @@ export async function createDemoTrip() {
         country: "Japan",
         start_date: kyotoStart,
         end_date: kyotoEnd,
-        stay_cost: 540,
-        transport_cost: 135,
+        stay_cost: 45000,
+        transport_cost: 11000,
         sort_order: 2,
         notes: "Group temples by neighborhood to keep days calm.",
       },
@@ -248,8 +248,8 @@ export async function createDemoTrip() {
         country: "Japan",
         start_date: osakaStart,
         end_date: osakaEnd,
-        stay_cost: 360,
-        transport_cost: 90,
+        stay_cost: 30000,
+        transport_cost: 7500,
         sort_order: 3,
         notes: "End with food markets and a relaxed departure morning.",
       },
@@ -269,7 +269,7 @@ export async function createDemoTrip() {
       category: "flight",
       start_time: "09:30",
       duration_minutes: 180,
-      cost: 920,
+      cost: 77000,
       notes: "Keep luggage storage and transit card pickup in the same block.",
     },
     {
@@ -280,7 +280,7 @@ export async function createDemoTrip() {
       category: "food",
       start_time: "17:30",
       duration_minutes: 150,
-      cost: 110,
+      cost: 9200,
       notes: "Good demo item for food, cost, and time planning.",
     },
     {
@@ -291,7 +291,7 @@ export async function createDemoTrip() {
       category: "transport",
       start_time: "10:00",
       duration_minutes: 140,
-      cost: 115,
+      cost: 9600,
       notes: "Use this to show transport in the category breakdown.",
     },
     {
@@ -302,7 +302,7 @@ export async function createDemoTrip() {
       category: "activity",
       start_time: "08:30",
       duration_minutes: 240,
-      cost: 65,
+      cost: 5400,
       notes: "Start early and keep lunch flexible.",
     },
     {
@@ -313,7 +313,7 @@ export async function createDemoTrip() {
       category: "food",
       start_time: "18:00",
       duration_minutes: 180,
-      cost: 95,
+      cost: 7900,
       notes: "A strong final-night story moment for the public itinerary.",
     },
   ]);
