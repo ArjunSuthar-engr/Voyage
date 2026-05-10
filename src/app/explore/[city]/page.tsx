@@ -165,7 +165,7 @@ export default function ExploreCityPage() {
       <div className="mx-auto max-w-5xl px-6 py-12">
         {/* Description */}
         <p className="mb-12 text-center font-serif text-2xl font-light italic leading-relaxed text-white/90">
-          "{data.description}"
+          &ldquo;{data.description}&rdquo;
         </p>
 
         {/* Photos Grid */}

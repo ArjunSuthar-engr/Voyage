@@ -561,8 +561,16 @@ export default function Home() {
         <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
           <nav className="flex min-w-0 items-center gap-4">
             <button
-              className="transition hover:text-white"
+              className="hidden py-2 transition hover:text-white sm:inline"
               type="button"
+              onClick={() => openAuthPanel("login", "/trips")}
+            >
+              Upcoming trips
+            </button>
+            <button
+              className="py-2 transition hover:text-white sm:hidden"
+              type="button"
+              aria-label="View upcoming trips"
               onClick={() => openAuthPanel("login", "/trips")}
             >
               Trips
@@ -578,7 +586,7 @@ export default function Home() {
           <nav className="flex items-center justify-end gap-3">
             {displayName ? (
               <button
-                className="flex max-w-36 items-center gap-2 truncate text-right text-xs font-semibold uppercase text-white/55 transition hover:text-white sm:max-w-44"
+                className="inline-flex max-w-44 items-center justify-end gap-2 py-2 text-right text-white/92 transition hover:text-teal-100 sm:max-w-56"
                 type="button"
                 onClick={openProfilePanel}
               >
