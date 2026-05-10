@@ -55,11 +55,11 @@ export function TopNav({ signOutMode = "icon" }: TopNavProps) {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#101216]/95 backdrop-blur">
       <div className="mx-auto grid h-20 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 text-xs font-semibold uppercase text-white/72 sm:px-6 lg:px-8">
         <nav className="flex items-center gap-4">
-          <Link className="transition hover:text-white" href="/dashboard">
+          <Link className="transition hover:text-white" href="/trips">
             Trips
           </Link>
         </nav>
-        <Link href="/dashboard" className="font-serif text-2xl font-semibold italic normal-case text-white">
+        <Link href="/" className="font-serif text-2xl font-semibold italic normal-case text-white">
           Voyage
         </Link>
         <nav className="flex items-center justify-end gap-2 sm:gap-3">

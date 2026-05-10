@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CalendarDays, Map, MapPin } from "lucide-react";
 
@@ -64,12 +65,12 @@ export default function PublicSharePage() {
     <main className="min-h-screen bg-[#14171b] text-white">
       <header className="border-b border-white/10 bg-[#101216]">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 text-xs font-semibold uppercase text-white/72">
-          <div className="flex items-center gap-3">
+          <Link className="flex items-center gap-3" href="/">
             <span className="flex h-9 w-9 items-center justify-center bg-white text-slate-950">
               <Map className="h-4 w-4" />
             </span>
             <span className="font-serif text-2xl font-semibold italic normal-case text-white">Voyage</span>
-          </div>
+          </Link>
           <Badge className="border-teal-300/30 bg-teal-400/12 text-teal-100">Public itinerary</Badge>
         </div>
       </header>

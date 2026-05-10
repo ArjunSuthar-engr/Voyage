@@ -20,7 +20,7 @@ import { createDemoTrip, deleteTrip, getTrips, updateTrip } from "@/lib/trips";
 import type { Trip, TripInput } from "@/lib/types";
 import { getUserDisplayName } from "@/lib/user";
 
-export default function DashboardPage() {
+export default function TripsPage() {
   const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [displayName, setDisplayName] = useState("");
@@ -47,7 +47,7 @@ export default function DashboardPage() {
       }
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
-        router.replace("/?auth=login&next=/dashboard");
+        router.replace("/?auth=login&next=/trips");
         return;
       }
       setDisplayName(getUserDisplayName(data.user));
@@ -178,7 +178,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      <Modal open={Boolean(editingTrip)} title="Edit trip" description="Update the trip summary used across dashboard and sharing." onClose={() => setEditingTrip(null)}>
+      <Modal open={Boolean(editingTrip)} title="Edit trip" description="Update the trip summary used across trips and sharing." onClose={() => setEditingTrip(null)}>
         {editingTrip ? <TripForm initialTrip={editingTrip} submitLabel="Save changes" onSubmit={handleUpdateTrip} /> : null}
       </Modal>
     </AppShell>

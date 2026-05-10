@@ -59,7 +59,7 @@ export default function TripDetailPage() {
       setAllTrips(trips);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not load trip");
-      router.replace("/dashboard");
+      router.replace("/trips");
     } finally {
       setLoading(false);
     }

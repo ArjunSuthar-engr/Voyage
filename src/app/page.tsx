@@ -125,7 +125,7 @@ export default function Home() {
   const [destinationLayout, setDestinationLayout] = useState<DropdownLayout | null>(null);
   const [styleLayout, setStyleLayout] = useState<DropdownLayout | null>(null);
   const [loading, setLoading] = useState(false);
-  const [postAuthPath, setPostAuthPath] = useState("/dashboard");
+  const [postAuthPath, setPostAuthPath] = useState("/");
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const selectedPlan = recommendedPlans[selectedPlanIndex] ?? recommendedPlans[0];
   const destinationQuery = tripDestination.trim().toLowerCase();
@@ -154,7 +154,7 @@ export default function Home() {
     if (requestedMode === "login" || requestedMode === "signup") {
       window.setTimeout(() => {
         setMode(requestedMode);
-        setPostAuthPath(params.get("next") || "/dashboard");
+        setPostAuthPath(params.get("next") || "/");
         setAuthOpen(true);
         router.replace("/", { scroll: false });
       }, 0);
@@ -395,14 +395,14 @@ export default function Home() {
         <header className="relative z-10 mx-auto grid h-20 max-w-7xl grid-cols-[1fr_auto_1fr] border-b border-white/20 px-4 text-xs font-semibold uppercase tracking-normal text-white/85 sm:h-24 sm:px-8">
           <div className="flex items-center gap-4">
             <Menu className="h-4 w-4" />
-            <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
+            <button className="hidden transition hover:text-white sm:inline" type="button" onClick={() => openAuthPanel("login", "/trips")}>
               Upcoming trips
             </button>
-            <button className="sm:hidden" type="button" aria-label="View upcoming trips" onClick={() => openAuthPanel("login", "/dashboard")}>
+            <button className="sm:hidden" type="button" aria-label="View upcoming trips" onClick={() => openAuthPanel("login", "/trips")}>
               Trips
             </button>
           </div>
-          <button className="flex items-center text-xl font-semibold normal-case italic text-white sm:text-2xl" type="button">
+          <button className="flex items-center text-xl font-semibold normal-case italic text-white sm:text-2xl" type="button" onClick={() => router.push("/")}>
             Voyage
           </button>
           <nav className="flex items-center justify-end gap-4">
@@ -710,9 +710,11 @@ export default function Home() {
 
       <footer className="relative z-10 border-t border-white/10 bg-[#101216] px-4 py-10 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 text-sm text-white/58 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-serif text-2xl font-semibold italic text-white">Voyage</p>
+          <button className="w-fit font-serif text-2xl font-semibold italic text-white" type="button" onClick={() => router.push("/")}>
+            Voyage
+          </button>
           <div className="flex flex-wrap gap-5">
-            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/dashboard")}>
+            <button className="transition hover:text-white" type="button" onClick={() => openAuthPanel("login", "/trips")}>
               Upcoming trips
             </button>
             {displayName ? (
