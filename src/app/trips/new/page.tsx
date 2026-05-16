@@ -110,19 +110,7 @@ export default function NewTripPage() {
 
     async function guard() {
       readInitialTripValues();
-
-      if (!isSupabaseConfigured) {
-        setReady(true);
-        return;
-      }
-
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        const currentPath = `/trips/new${window.location.search}`;
-        router.replace(`/?auth=login&next=${encodeURIComponent(currentPath)}`);
-      } else {
-        setReady(true);
-      }
+      setReady(true);
     }
 
     guard();

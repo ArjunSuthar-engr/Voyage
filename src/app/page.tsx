@@ -227,42 +227,20 @@ export default function Home() {
 
   useEffect(() => {
     async function loadUser() {
-      if (!isSupabaseConfigured) return;
-
-      const { data } = await supabase.auth.getUser();
-      applyUserProfile(data.user);
+      applyUserProfile({
+        id: "demo",
+        email: demoEmail,
+        user_metadata: { full_name: "Demo Voyager" }
+      } as any);
     }
 
     loadUser();
-
-    const params = new URLSearchParams(window.location.search);
-    const requestedMode = params.get("auth");
-
-    if (requestedMode === "login" || requestedMode === "signup") {
-      window.setTimeout(() => {
-        setMode(requestedMode);
-        setPostAuthPath(params.get("next") || "/");
-        setAuthOpen(true);
-        router.replace("/", { scroll: false });
-      }, 0);
-    }
   }, [router]);
 
   async function openAuthPanel(nextMode: AuthMode, targetPath: string) {
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        applyUserProfile(data.user);
-        if (targetPath !== "/") {
-          router.push(targetPath);
-        }
-        return;
-      }
+    if (targetPath !== "/") {
+      router.push(targetPath);
     }
-
-    setMode(nextMode);
-    setPostAuthPath(targetPath);
-    setAuthOpen(true);
   }
 
   function openProfilePanel() {
@@ -311,15 +289,7 @@ export default function Home() {
   async function addRecommendedPlanToTrips() {
     if (!selectedPlan) return;
 
-    if (isSupabaseConfigured) {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        setMode("login");
-        setPostAuthPath("/");
-        setAuthOpen(true);
-        return;
-      }
-    }
+    // Demo user is always logged in
 
     const start = addDays(new Date(), 21);
     const dayCount = Number.parseInt(selectedPlan.days, 10) || Math.max(selectedPlan.route.length, 4);
@@ -422,9 +392,10 @@ export default function Home() {
           return;
         }
 
-        const { data, error } = await supabase.auth.updateUser({
+        const mockUser = {
+          id: "demo",
           email: nextEmail,
-          data: {
+          user_metadata: {
             full_name: displayName,
             name: displayName,
             avatar_seed: avatarSeed,
@@ -439,49 +410,14 @@ export default function Home() {
               public_profile: publicProfileEnabled,
             },
           },
-        });
-        if (error) throw error;
+        };
 
-        applyUserProfile(data.user);
+        applyUserProfile(mockUser as any);
         setAuthOpen(false);
         return;
-      }
-
-      if (mode === "login") {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-
-        const { data: profileData, error: profileError } = await supabase.auth.updateUser({
-          data: { full_name: displayName, name: displayName },
-        });
-        if (profileError) throw profileError;
-        applyUserProfile(profileData.user ?? data.user);
-
-        setAuthOpen(false);
-        if (postAuthPath !== "/") {
-          router.push(postAuthPath);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: displayName, name: displayName } },
-      });
-      if (error) throw error;
-
-      if (data.session) {
-        applyUserProfile(data.user);
-        setAuthOpen(false);
-        if (postAuthPath !== "/") {
-          router.push(postAuthPath);
-        }
-      } else {
-        setMode("login");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Authentication failed");
+      toast.error(error instanceof Error ? error.message : "Profile update failed");
     } finally {
       setLoading(false);
     }
@@ -526,27 +462,12 @@ export default function Home() {
   }
 
   async function signOut() {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      setDisplayName("");
-      setSavedProfile(null);
-      setName("");
-      setEmail("");
-      setPassword("");
-      setAuthOpen(false);
-      router.push("/");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign out");
-    } finally {
-      setLoading(false);
-    }
+    toast.success("Demo user cannot sign out");
+    setAuthOpen(false);
   }
 
   function deleteAccount() {
-    toast.error("Account deletion needs a Supabase Edge Function or server action with admin privileges.");
+    toast.error("Demo account cannot be deleted.");
   }
 
   return (

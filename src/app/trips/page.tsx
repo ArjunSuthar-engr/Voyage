@@ -41,16 +41,7 @@ export default function TripsPage() {
 
   useEffect(() => {
     async function guard() {
-      if (!isSupabaseConfigured) {
-        setLoading(false);
-        return;
-      }
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        router.replace("/?auth=login&next=/trips");
-        return;
-      }
-      setDisplayName(getUserDisplayName(data.user));
+      setDisplayName("Demo Voyager");
       await loadTrips();
     }
 

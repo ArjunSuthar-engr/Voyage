@@ -3,11 +3,7 @@ import { assertSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Activity, ActivityInput, Stop, StopInput, Trip, TripInput, TripWithStops } from "@/lib/types";
 
 async function requireUserId() {
-  assertSupabaseConfigured();
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  if (!data.user) throw new Error("You need to sign in first.");
-  return data.user.id;
+  return "demo";
 }
 
 function attachActivities(stops: Stop[], activities: Activity[]) {

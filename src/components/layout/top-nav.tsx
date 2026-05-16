@@ -26,8 +26,7 @@ export function TopNav({ currentTripId, trips = [] }: TopNavProps) {
 
   useEffect(() => {
     async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setDisplayName(getUserDisplayName(data.user));
+      setDisplayName("Demo Voyager");
     }
 
     loadUser();
@@ -48,9 +47,7 @@ export function TopNav({ currentTripId, trips = [] }: TopNavProps) {
 
   async function handleSignOut() {
     setUserMenuOpen(false);
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-    router.replace("/");
+    toast.success("Demo user cannot sign out");
   }
 
   return (

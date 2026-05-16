@@ -69,15 +69,6 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     async function guard() {
-      if (!isSupabaseConfigured) {
-        setLoading(false);
-        return;
-      }
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        router.replace(`/?auth=login&next=/trips/${params.tripId}`);
-        return;
-      }
       await loadTrip();
     }
 
